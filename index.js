@@ -25,6 +25,13 @@ app.get("/", (req, res) => {
 });
 
 
+app.get("/api/brawl/legends/:legend_name", function (req, res) {
+  
+  const legendName = req.params.legend_name;
+  res.sendFile(__dirname + "/legends/" + legendName + ".png");
+});
+
+
 app.get("/api/brawl/:username&:elo", async (req, res) => {
   try {
     const username = req.params.username;
