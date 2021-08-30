@@ -1,10 +1,11 @@
 require("dotenv").config();
 const express = require("express");
 const fetch = require("node-fetch");
-const Joi = require("joi"); //used for validation
+const Joi = require("joi");
 const puppeteer = require("puppeteer");
 var cors = require("cors");
 const rateLimit = require("express-rate-limit");
+const { MongoClient } = require("mongodb");
 const app = express();
 app.use(express.json());
 
@@ -19,23 +20,75 @@ app.use(limiter);
 app.use(cors());
 
 
+
+
+/* Connection to the database and function to find the name of the weapon one and two for a champion */
+
+const uri =
+  "mongodb+srv://alexis:rooot@cluster0.puhjk.mongodb.net/brawlData?retryWrites=true&w=majority";
+
+const client = new MongoClient(uri);
+async function weaponOneAndTwoNames(legendName) {
+  try {
+    await client.connect();
+    const database = client.db("brawlData");
+    const allLegends = database.collection("allLegends");
+    // Query for a legend that has the name {legendName}
+    const query = { legend_name_key: legendName };
+    const options = {
+      // sort matched documents in descending order by rating
+      sort: { rating: -1 },
+      // Include only the fields 1 in the returned document
+      projection: {
+        _id: 0,
+        weapon_one: 1,
+        weapon_two: 1,
+      },
+    };
+    const weapons = await allLegends.findOne(query, options);
+    // since this method returns the matched document, not a cursor, print it directly
+    return await weapons;
+  } finally {
+    // await client.close();
+  }
+}
+weaponOneAndTwoNames().catch(console.dir);
+
+
+
+
+
+
+
+
+
+
+
+/* Main API page and page for display a legend picture with a legend parameter */
+
 //READ Request Handlers
 app.get("/", (req, res) => {
   res.send("Welcome to the API");
 });
 
+console.log();
 
 app.get("/api/brawl/legends/:legend_name", function (req, res) {
-  
   const legendName = req.params.legend_name;
   res.sendFile(__dirname + "/legends/" + legendName + ".png");
 });
 
 
-app.get("/api/brawl/:username&:elo", async (req, res) => {
+
+
+/* corehalla scraping for the ids because for the moment no offsets or other strat */
+/* username = the username of the opponent / elo = the elo of the client / the bralhalla id of the client */
+
+app.get("/api/brawl/:username&:elo&:brawlIDClient", async (req, res) => {
   try {
     const username = req.params.username;
     const elo = req.params.elo;
+    const brawlIDClient = req.params.brawlIDClient;
 
     var BrawlID = (async function main() {
       try {
@@ -121,6 +174,8 @@ app.get("/api/brawl/:username&:elo", async (req, res) => {
       }
     })();
 
+    /* brawlhalla API calls for collect the opponent and the client infos */
+
     const BrawlIDFinal = await BrawlID;
     const playerStats = await fetch(
       `https://api.brawlhalla.com/player/${BrawlIDFinal}/stats?api_key=${process.env.BRAWL_API_KEY}`
@@ -132,32 +187,117 @@ app.get("/api/brawl/:username&:elo", async (req, res) => {
     );
     var playerRankedJSON = await playerRanked.json();
 
+    const playerClientStats = await fetch(
+      `https://api.brawlhalla.com/player/${brawlIDClient}/stats?api_key=${process.env.BRAWL_API_KEY}`
+    );
+    var playerClientStatsJSON = await playerClientStats.json();
 
-    console.log(playerStatsJSON["xp"]);
+    const playerClientRanked = await fetch(
+      `https://api.brawlhalla.com/player/${brawlIDClient}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+    );
+    var playerClientRankedJSON = await playerClientRanked.json();
 
-    var bestLevelCharacter = 0;
-    var idBestCharacter = 0;
+    /* retrieve the main character of the client or the opponent */
 
-    for (var k in playerStatsJSON["legends"]) {
-        if (playerStatsJSON["legends"][k]["level"] > bestLevelCharacter) {
-          bestLevelCharacter = playerStatsJSON["legends"][k]["level"];
+    function mainCharacter(player) {
+      var bestLevelCharacter = 0;
+      var idBestCharacter = 0;
+
+      for (var k in player["legends"]) {
+        if (player["legends"][k]["xp"] > bestLevelCharacter) {
+          bestLevelCharacter = player["legends"][k]["xp"];
           idBestCharacter = k;
         }
       }
-      const bestCharacter =
-        playerStatsJSON["legends"][idBestCharacter]["legend_name_key"]
+      const mainCharacter =
+        player["legends"][idBestCharacter]["legend_name_key"]
           .charAt(0)
           .toUpperCase() +
-        playerStatsJSON["legends"][idBestCharacter]["legend_name_key"].slice(1);
+        player["legends"][idBestCharacter]["legend_name_key"].slice(1);
 
-      console.log(bestCharacter); //mettre en format json avec les autres infos obtenus
+      return mainCharacter; //mettre en format json avec les autres infos obtenus
+    }
 
-    // console.log(arrayPlayersBhIDFinal);
+    /* retrieve the main weapon of the client or the opponent */
+
+    async function mainWeapon(player) {
+      var Hammer = 0;
+      var Sword = 0;
+      var Pistol = 0;
+      var RocketLance = 0;
+      var Spear = 0;
+      var Katar = 0;
+      var Axe = 0;
+      var Bow = 0;
+      var Fists = 0;
+      var Scythe = 0;
+      var Cannon = 0;
+      var Orb = 0;
+      var Greatsword = 0;
+
+      for (var k in player["legends"]) {
+        weapon1 = weaponOneAndTwoNames(
+          player["legends"][k]["legend_name_key"]
+        ).then(async function (v) {
+          weapon1 = await v.weapon_one;
+          return weapon1;
+        });
+        weapon2 = weaponOneAndTwoNames(
+          player["legends"][k]["legend_name_key"]
+        ).then(async function (v) {
+          weapon2 = await v.weapon_two;
+          return weapon2;
+        });
+        // console.log(await weapon1, await weapon2, k, player["legends"][k]["timeheldweaponone"], player["legends"][k]["timeheldweapontwo"]);
+        eval(weapon1 + " += " + player["legends"][k]["timeheldweaponone"]);
+        eval(weapon2 + " += " + player["legends"][k]["timeheldweapontwo"]);
+      }
+
+      const arrayWeapons = [
+        { weapon: "Hammer", value: Hammer },
+        { weapon: "Sword", value: Sword },
+        { weapon: "Pistol", value: Pistol },
+        { weapon: "RocketLance", value: RocketLance },
+        { weapon: "Spear", value: Spear },
+        { weapon: "Katar", value: Katar },
+        { weapon: "Axe", value: Axe },
+        { weapon: "Bow", value: Bow },
+        { weapon: "Fists", value: Fists },
+        { weapon: "Scythe", value: Scythe },
+        { weapon: "Cannon", value: Cannon },
+        { weapon: "Orb", value: Orb },
+        { weapon: "Greatsword", value: Greatsword },
+      ];
+
+      var x = arrayWeapons.reduce((acc, i) => (i.value > acc.value ? i : acc));
+      const mainWeapon = x.weapon;
+      return await mainWeapon;
+    }
+
+    const mainCharacterFinal = mainCharacter(playerStatsJSON);
+    const mainCharacterFinalClient = mainCharacter(playerClientStatsJSON);
+
+    const mainWeaponFinal = await mainWeapon(playerStatsJSON);
+    const mainWeaponFinalClient = await mainWeapon(playerClientStatsJSON);
+
+    playerOtherJSON = {
+      mainCharacterFinal: mainCharacterFinal,
+      mainWeaponFinal: mainWeaponFinal,
+    };
+
+    playerClientOtherJSON = {
+      mainCharacterFinal: mainCharacterFinalClient,
+      mainWeaponFinal: mainWeaponFinalClient,
+    };
 
     return res.json({
       success: true,
       playerStatsJSON,
       playerRankedJSON,
+      playerOtherJSON,
+      playerClientStatsJSON,
+      playerClientRankedJSON,
+      playerClientOtherJSON,
     });
   } catch (err) {
     return res.status(500).json({
