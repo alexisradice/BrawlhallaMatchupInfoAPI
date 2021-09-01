@@ -20,15 +20,13 @@ app.use(limiter);
 app.use(cors());
 
 
-
-
 /* Connection to the database and function to find the name of the weapon one and two for a champion */
 
 const uri =
   "mongodb+srv://alexis:rooot@cluster0.puhjk.mongodb.net/brawlData?retryWrites=true&w=majority";
 
 const client = new MongoClient(uri);
-async function weaponOneAndTwoNames(legendName) {
+async function getWeaponOneAndTwo(legendName) {
   try {
     await client.connect();
     const database = client.db("brawlData");
@@ -38,6 +36,7 @@ async function weaponOneAndTwoNames(legendName) {
     const options = {
       // sort matched documents in descending order by rating
       sort: { rating: -1 },
+
       // Include only the fields 1 in the returned document
       projection: {
         _id: 0,
@@ -52,9 +51,35 @@ async function weaponOneAndTwoNames(legendName) {
     // await client.close();
   }
 }
-weaponOneAndTwoNames().catch(console.dir);
+getWeaponOneAndTwo().catch(console.dir);
 
 
+async function getTrueLevel(xpPlayer) {
+  try {
+    await client.connect();
+    const database = client.db("brawlData");
+    const trueLevels = database.collection("trueLevels");
+    // Query for a legend that has the name {legendName}
+    const query = { xp: { $lt: xpPlayer } };
+    const options = {
+      // sort matched documents in descending order by rating
+      sort: { level: -1 },
+      limit: 1,
+      // Include only the fields 1 in the returned document
+      projection: {
+        _id: 0,
+        level: 1,
+      },
+    };
+    const trueLevel = await trueLevels.findOne(query, options);
+    // since this method returns the matched document, not a cursor, print it directly
+    // console.log(trueLevel);
+    return await trueLevel;
+  } finally {
+    // await client.close();
+  }
+}
+getTrueLevel().catch(console.dir);
 
 
 
@@ -236,21 +261,22 @@ app.get("/api/brawl/:username&:elo&:brawlIDClient", async (req, res) => {
       var Greatsword = 0;
 
       for (var k in player["legends"]) {
-        weapon1 = weaponOneAndTwoNames(
+        weapon1 = getWeaponOneAndTwo(
           player["legends"][k]["legend_name_key"]
         ).then(async function (v) {
           weapon1 = await v.weapon_one;
           return weapon1;
         });
-        weapon2 = weaponOneAndTwoNames(
+        weapon2 = getWeaponOneAndTwo(
           player["legends"][k]["legend_name_key"]
         ).then(async function (v) {
           weapon2 = await v.weapon_two;
           return weapon2;
         });
-        // console.log(await weapon1, await weapon2, k, player["legends"][k]["timeheldweaponone"], player["legends"][k]["timeheldweapontwo"]);
-        eval(weapon1 + " += " + player["legends"][k]["timeheldweaponone"]);
-        eval(weapon2 + " += " + player["legends"][k]["timeheldweapontwo"]);
+        // console.log(await weapon1,await weapon2,k,player["legends"][k]["timeheldweaponone"],player["legends"][k]["timeheldweapontwo"]);
+        eval(await weapon1 + " += " + player["legends"][k]["timeheldweaponone"]);
+        eval(await weapon2 + " += " + player["legends"][k]["timeheldweapontwo"]
+        );
       }
 
       const arrayWeapons = [
@@ -274,21 +300,69 @@ app.get("/api/brawl/:username&:elo&:brawlIDClient", async (req, res) => {
       return await mainWeapon;
     }
 
+    async function trueLevel(player){
+      var trueLevelFinal = 0;
+      if (player["level"] == 100) {
+        trueLevelFinal = getTrueLevel(player["xp"]).then(async function (v) {
+          trueLevelFinal = await v.level;
+          return trueLevelFinal;
+        });
+      }else {
+        trueLevelFinal = player["level"];
+      }
+      return await trueLevelFinal;
+    }
+
+    function passiveOrAggressive(player) {
+      var totalMatchTime = 0;
+      var passiveAgressive;
+
+      for (var k in player["legends"]) {
+        totalMatchTime += player["legends"][k]["matchtime"];
+        }
+      const totalGames = player["games"];
+      const averageGameLength = totalMatchTime / totalGames;
+
+      if (averageGameLength < 175){
+        passiveAgressive = "Passive";
+      } else if (averageGameLength < 185) {
+        passiveAgressive = "Neutral";
+      } else {
+        passiveAgressive = "Agressive";
+      }
+      
+      return passiveAgressive;
+      }
+
+
     const mainCharacterFinal = mainCharacter(playerStatsJSON);
     const mainCharacterFinalClient = mainCharacter(playerClientStatsJSON);
 
     const mainWeaponFinal = await mainWeapon(playerStatsJSON);
     const mainWeaponFinalClient = await mainWeapon(playerClientStatsJSON);
 
+    const trueLevelFinal = await trueLevel(playerStatsJSON);
+    const trueLevelFinalClient = await trueLevel(playerClientStatsJSON);
+
+    const passiveAgressiveFinal = await passiveOrAggressive(playerStatsJSON);
+    const passiveAgressiveClientFinal = await passiveOrAggressive(playerClientStatsJSON);
+
+
     playerOtherJSON = {
-      mainCharacterFinal: mainCharacterFinal,
-      mainWeaponFinal: mainWeaponFinal,
+      mainCharacter: mainCharacterFinal,
+      mainWeapon: mainWeaponFinal,
+      trueLevel: trueLevelFinal,
+      passiveAgressive: passiveAgressiveFinal,
     };
 
     playerClientOtherJSON = {
-      mainCharacterFinal: mainCharacterFinalClient,
-      mainWeaponFinal: mainWeaponFinalClient,
+      mainCharacter: mainCharacterFinalClient,
+      mainWeapon: mainWeaponFinalClient,
+      trueLevel: trueLevelFinalClient,
+      passiveAgressiveClient: passiveAgressiveClientFinal,
     };
+
+    console.log(username, elo, brawlIDClient);
 
     return res.json({
       success: true,
