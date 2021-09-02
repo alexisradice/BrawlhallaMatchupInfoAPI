@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const fetch = require("node-fetch");
 const Joi = require("joi");
-const puppeteer = require("puppeteer");
 var cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const { MongoClient } = require("mongodb");
