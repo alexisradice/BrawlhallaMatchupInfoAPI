@@ -21,8 +21,7 @@ app.use(cors());
 
 /* Connection to the database and function to find the name of the weapon one and two for a champion */
 
-const uri =
-  "mongodb+srv://alexis:rooot@cluster0.puhjk.mongodb.net/brawlData?retryWrites=true&w=majority";
+const uri = process.env.DATABASE_NAME;
 
 const client = new MongoClient(uri);
 async function getWeaponOneAndTwo(legendName) {
@@ -143,20 +142,6 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
 
       return await playerStatsJSON;
 
-      // const playerRanked = await fetch(
-      //   `https://api.brawlhalla.com/player/${BrawlIDFinal}/ranked?api_key=${process.env.BRAWL_API_KEY}`
-      // );
-      // var playerRankedJSON = await playerRanked.json();
-
-      // const playerClientStats = await fetch(
-      //   `https://api.brawlhalla.com/player/${brawlIDClient}/stats?api_key=${process.env.BRAWL_API_KEY}`
-      // );
-      // var playerClientStatsJSON = await playerClientStats.json();
-
-      // const playerClientRanked = await fetch(
-      //   `https://api.brawlhalla.com/player/${brawlIDClient}/ranked?api_key=${process.env.BRAWL_API_KEY}`
-      // );
-      // var playerClientRankedJSON = await playerClientRanked.json();
     }
 
     async function apiCallRanked(brawlID) {
@@ -170,13 +155,8 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
 
     const statsClientJSON = await apiCallStats(brawlIDClient);
     const rankedClientJSON = await apiCallRanked(brawlIDClient);
-    // const regionClient = rankedClientJSON["region"];
-    // const ratingClient = rankedClientJSON["rating"];
 
-    
 
-    // const ratingOpponent = infosOpponentJSON["rating"];
-    // const peakRatingOpponent = infosOpponentJSON["peak_rating"];
 
     /* retrieve the main character of the client or the opponent */
     async function mainLevelCharacter(player) {
@@ -196,13 +176,11 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
         nameCharacter = await v.bio_name;
         picture = await v.picture;
         mainLevelCharacterInfosFinal = [nameCharacter, picture]
-        // console.log(mainLevelCharacterInfosFinal)
         return await mainLevelCharacterInfosFinal;
       });
 
       mainLevelCharacterInfos[0] = mainLevelCharacterInfos[0] + " (Lvl " + lvlCharacter + ")"
 
-      // const mainLevelCharacterFinal = player["legends"][idMainLevelCharacter]["legend_name_key"].charAt(0).toUpperCase() + player["legends"][idMainLevelCharacter]["legend_name_key"].slice(1);
 
       return await mainLevelCharacterInfos; //mettre en format json avec les autres infos obtenus
     }
@@ -229,7 +207,6 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
 
       mainRankedCharacterInfos[0] = mainRankedCharacterInfos[0] + " (" + ratingCharacter + ")"
 
-      // const mainRankedCharacterFinal = player["legends"][idMainRankedCharacter]["legend_name_key"].charAt(0).toUpperCase() + player["legends"][idMainRankedCharacter]["legend_name_key"].slice(1);
 
       return mainRankedCharacterInfos; //mettre en format json avec les autres infos obtenus
     }
@@ -263,7 +240,6 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
           weapon2 = await v.weapon_two;
           return weapon2;
         });
-        // console.log(await weapon1,await weapon2,k,player["legends"][k]["timeheldweaponone"],player["legends"][k]["timeheldweapontwo"]);
         eval(
           (await weapon1) + " += " + player["legends"][k]["timeheldweaponone"]
         );
@@ -342,22 +318,12 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
     const passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
 
 
-
-
     const mainLevelCharacterFinalClient = mainLevelCharacterObjectClient[0];
-
-    // const mainRankedCharacterFinalOpponent = mainRankedCharacterInfos[0];
     const mainRankedCharacterFinalClient = mainRankedCharacterClient[0];
-
-    // const mainRankedCharacterPictureFinalOpponent = mainRankedCharacterInfos[1];
     const mainRankedCharacterPictureFinalClient = mainRankedCharacterPictureClient[1];
-
     const mainWeaponFinalClient = await mainWeapon(statsClientJSON);
-
     const trueLevelFinalClient = await trueLevel(statsClientJSON);
-
     const passiveAgressiveFinalClient = passiveAgressiveAndTimePlayedClient[0];
-
     const timePlayedFinalClient = passiveAgressiveAndTimePlayedClient[1];
 
 
@@ -391,14 +357,14 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
 
 
 
-/* corehalla scraping for the ids because for the moment no offsets or other strat */
 /* username = the username of the opponent / elo = the elo of the client / the bralhalla id of the client */
 
-app.get("/api/brawl/:usernameOpponent&:brawlIDClient", async (req, res) => {
+app.get("/api/brawl/opponent/:usernameOpponent&:brawlIDClient&:ratingClient&:regionClient", async (req, res) => {
   try {
-    const username = req.params.usernameOpponent;
-    // const elo = req.params.elo;
+    const usernameOpponent = req.params.usernameOpponent;
+    const ratingClient = req.params.ratingClient;
     const brawlIDClient = req.params.brawlIDClient;
+    const regionClient = req.params.regionClient;
 
 
     /* brawlhalla API calls for collect the opponent and the client infos */
@@ -410,21 +376,6 @@ app.get("/api/brawl/:usernameOpponent&:brawlIDClient", async (req, res) => {
       var playerStatsJSON = await playerStats.json();
 
       return await playerStatsJSON;
-
-      // const playerRanked = await fetch(
-      //   `https://api.brawlhalla.com/player/${BrawlIDFinal}/ranked?api_key=${process.env.BRAWL_API_KEY}`
-      // );
-      // var playerRankedJSON = await playerRanked.json();
-
-      // const playerClientStats = await fetch(
-      //   `https://api.brawlhalla.com/player/${brawlIDClient}/stats?api_key=${process.env.BRAWL_API_KEY}`
-      // );
-      // var playerClientStatsJSON = await playerClientStats.json();
-
-      // const playerClientRanked = await fetch(
-      //   `https://api.brawlhalla.com/player/${brawlIDClient}/ranked?api_key=${process.env.BRAWL_API_KEY}`
-      // );
-      // var playerClientRankedJSON = await playerClientRanked.json();
     }
 
     async function apiCallRanked(brawlID) {
@@ -436,30 +387,23 @@ app.get("/api/brawl/:usernameOpponent&:brawlIDClient", async (req, res) => {
       return await playerRankedJSON;
     }
 
-    const statsClientJSON = await apiCallStats(brawlIDClient);
-    const rankedClientJSON = await apiCallRanked(brawlIDClient);
-    const regionClient = rankedClientJSON["region"];
-    const ratingClient = rankedClientJSON["rating"];
-
     const searchPlayer = await fetch(
-      `https://api.brawlhalla.com/rankings/1v1/all/1?name=${username}&api_key=${process.env.BRAWL_API_KEY}`
+      `https://api.brawlhalla.com/rankings/1v1/all/1?name=${usernameOpponent}&api_key=${process.env.BRAWL_API_KEY}`
     );
     var searchPlayerJSON = await searchPlayer.json();
-    // console.log(searchPlayerJSON);
 
 
+/* functions to retrieve useful stats */
     function getInfoPlayers(searchPlayerJSON) {
       var result = [];
       var arrayElo = [];
 
       for (var k in searchPlayerJSON) {
-        if (username == searchPlayerJSON[k]["name"] && regionClient == searchPlayerJSON[k]["region"]) {
-          // console.log(searchPlayerJSON[k]);
+        if (usernameOpponent == searchPlayerJSON[k]["name"] && regionClient == searchPlayerJSON[k]["region"]) {
+
           result.push(searchPlayerJSON[k]);
         }
       }
-
-      // console.log(result[1])
 
       for (var k in result) {
         arrayElo.push(result[k]["rating"]);
@@ -469,13 +413,9 @@ app.get("/api/brawl/:usernameOpponent&:brawlIDClient", async (req, res) => {
         return Math.abs(b - ratingClient) < Math.abs(a - ratingClient) ? b : a;
       });
 
-      // console.log(closest);
-
       var indexPlayer = result.findIndex(function (result) {
         return result.rating === closest;
       });
-
-      // console.log(indexElo);
 
       return result[indexPlayer];
     }
@@ -485,8 +425,7 @@ app.get("/api/brawl/:usernameOpponent&:brawlIDClient", async (req, res) => {
     const brawlIdOpponent = infosOpponentJSON["brawlhalla_id"];
     const statsOpponentJSON = await apiCallStats(brawlIdOpponent);
     const rankedOpponentJSON = await apiCallRanked(brawlIdOpponent);
-    // const ratingOpponent = infosOpponentJSON["rating"];
-    // const peakRatingOpponent = infosOpponentJSON["peak_rating"];
+
 
     /* retrieve the main character of the client or the opponent */
     async function mainLevelCharacter(player) {
@@ -539,9 +478,7 @@ app.get("/api/brawl/:usernameOpponent&:brawlIDClient", async (req, res) => {
 
       mainRankedCharacterInfos[0] = mainRankedCharacterInfos[0] + " (" + ratingCharacter + ")"
 
-      // const mainRankedCharacterFinal = player["legends"][idMainRankedCharacter]["legend_name_key"].charAt(0).toUpperCase() + player["legends"][idMainRankedCharacter]["legend_name_key"].slice(1);
-
-      return mainRankedCharacterInfos; //mettre en format json avec les autres infos obtenus
+      return mainRankedCharacterInfos;
     }
 
     /* retrieve the main weapon of the client or the opponent */
@@ -645,57 +582,22 @@ app.get("/api/brawl/:usernameOpponent&:brawlIDClient", async (req, res) => {
       return passiveAgressivetTimePlayed;
     }
 
-/*
-    var mainRankedCharacterInfos = await getCharacterById(infosOpponentJSON["best_legend"]).then(async function (v) {
-      nameCharacter = await v.bio_name;
-      idCharacter = await v.legend_id;
-      picture = await v.picture;
-
-
-      // mainRankedCharacterInfos[0] = mainRankedCharacterInfos[0] + " (" + ratingCharacter + ")";
-
-      var mainRankedCharacterInfosFinal = [nameCharacter, picture, idCharacter];
-
-      return await mainRankedCharacterInfosFinal;
-    });
-*/
-
 
 
     const mainLevelCharacterObjectOpponent = await mainLevelCharacter(statsOpponentJSON);
-    const mainLevelCharacterObjectClient = await mainLevelCharacter(statsClientJSON);
     const mainRankedCharacterOpponent = await mainRankedCharacter(rankedOpponentJSON);
-    const mainRankedCharacterClient = await mainRankedCharacter(rankedClientJSON);
     const mainRankedCharacterPictureOpponent = await mainRankedCharacter(rankedOpponentJSON);
-    const mainRankedCharacterPictureClient = await mainRankedCharacter(rankedClientJSON);
     const passiveAgressiveAndTimePlayedOpponent = await passiveAggressiveAndTimePlayed(statsOpponentJSON);
-    const passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
-
 
 
 
     const mainLevelCharacterFinalOpponent = mainLevelCharacterObjectOpponent[0];
-    const mainLevelCharacterFinalClient = mainLevelCharacterObjectClient[0];
-
-    // const mainRankedCharacterFinalOpponent = mainRankedCharacterInfos[0];
     const mainRankedCharacterFinalOpponent = mainRankedCharacterOpponent[0];
-    const mainRankedCharacterFinalClient = mainRankedCharacterClient[0];
-
-    // const mainRankedCharacterPictureFinalOpponent = mainRankedCharacterInfos[1];
     const mainRankedCharacterPictureFinalOpponent = mainRankedCharacterPictureOpponent[1];
-    const mainRankedCharacterPictureFinalClient = mainRankedCharacterPictureClient[1];
-
     const mainWeaponFinalOpponent = await mainWeapon(statsOpponentJSON);
-    const mainWeaponFinalClient = await mainWeapon(statsClientJSON);
-
     const trueLevelFinalOpponent = await trueLevel(statsOpponentJSON);
-    const trueLevelFinalClient = await trueLevel(statsClientJSON);
-
     const passiveAgressiveFinalOpponent = passiveAgressiveAndTimePlayedOpponent[0];
-    const passiveAgressiveFinalClient = passiveAgressiveAndTimePlayedClient[0];
-
     const timePlayedFinalOpponent = passiveAgressiveAndTimePlayedOpponent[1];
-    const timePlayedFinalClient = passiveAgressiveAndTimePlayedClient[1];
 
 
     miscOpponentJSON = {
@@ -708,27 +610,14 @@ app.get("/api/brawl/:usernameOpponent&:brawlIDClient", async (req, res) => {
       timePlayed: timePlayedFinalOpponent,
     };
 
-    miscClientJSON = {
-      mainLevelCharacter: mainLevelCharacterFinalClient,
-      mainRankedCharacter: mainRankedCharacterFinalClient,
-      pictureMainRankedCharacter: mainRankedCharacterPictureFinalClient,
-      mainWeapon: mainWeaponFinalClient,
-      trueLevel: trueLevelFinalClient,
-      passiveAgressive: passiveAgressiveFinalClient,
-      timePlayed: timePlayedFinalClient,
-    };
-
-    console.log(username, brawlIDClient);
+    console.log(usernameOpponent, brawlIDClient);
 
     return res.json({
       success: true,
       statsOpponentJSON,
       infosOpponentJSON,
-      // playerRankedJSON,
       miscOpponentJSON,
-      statsClientJSON,
-      rankedClientJSON,
-      miscClientJSON,
+
     });
   } catch (err) {
     return res.status(500).json({
