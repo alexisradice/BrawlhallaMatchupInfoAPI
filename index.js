@@ -128,6 +128,268 @@ app.get("/api/brawl/legends/:legend_name", function (req, res) {
 
 
 
+app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
+  try {
+
+    const brawlIDClient = req.params.brawlIDClient;
+
+    /* brawlhalla API calls for collect the opponent and the client infos */
+
+    async function apiCallStats(brawlID) {
+      const playerStats = await fetch(
+        `https://api.brawlhalla.com/player/${brawlID}/stats?api_key=${process.env.BRAWL_API_KEY}`
+      );
+      var playerStatsJSON = await playerStats.json();
+
+      return await playerStatsJSON;
+
+      // const playerRanked = await fetch(
+      //   `https://api.brawlhalla.com/player/${BrawlIDFinal}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+      // );
+      // var playerRankedJSON = await playerRanked.json();
+
+      // const playerClientStats = await fetch(
+      //   `https://api.brawlhalla.com/player/${brawlIDClient}/stats?api_key=${process.env.BRAWL_API_KEY}`
+      // );
+      // var playerClientStatsJSON = await playerClientStats.json();
+
+      // const playerClientRanked = await fetch(
+      //   `https://api.brawlhalla.com/player/${brawlIDClient}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+      // );
+      // var playerClientRankedJSON = await playerClientRanked.json();
+    }
+
+    async function apiCallRanked(brawlID) {
+      const playerRanked = await fetch(
+        `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+      );
+      var playerRankedJSON = await playerRanked.json();
+
+      return await playerRankedJSON;
+    }
+
+    const statsClientJSON = await apiCallStats(brawlIDClient);
+    const rankedClientJSON = await apiCallRanked(brawlIDClient);
+    // const regionClient = rankedClientJSON["region"];
+    // const ratingClient = rankedClientJSON["rating"];
+
+    
+
+    // const ratingOpponent = infosOpponentJSON["rating"];
+    // const peakRatingOpponent = infosOpponentJSON["peak_rating"];
+
+    /* retrieve the main character of the client or the opponent */
+    async function mainLevelCharacter(player) {
+      var mainLevelCharacter = 0;
+      var idMainLevelCharacter = 0;
+      
+      for (var k in player["legends"]) {
+        if (player["legends"][k]["xp"] > mainLevelCharacter) {
+          mainLevelCharacter = player["legends"][k]["xp"];
+          idMainLevelCharacter = k;
+        }
+      }
+
+      const lvlCharacter = player["legends"][idMainLevelCharacter]["level"];
+
+      var mainLevelCharacterInfos = await getCharacterById(player["legends"][idMainLevelCharacter]["legend_id"]).then(async function (v) {
+        nameCharacter = await v.bio_name;
+        picture = await v.picture;
+        mainLevelCharacterInfosFinal = [nameCharacter, picture]
+        // console.log(mainLevelCharacterInfosFinal)
+        return await mainLevelCharacterInfosFinal;
+      });
+
+      mainLevelCharacterInfos[0] = mainLevelCharacterInfos[0] + " (Lvl " + lvlCharacter + ")"
+
+      // const mainLevelCharacterFinal = player["legends"][idMainLevelCharacter]["legend_name_key"].charAt(0).toUpperCase() + player["legends"][idMainLevelCharacter]["legend_name_key"].slice(1);
+
+      return await mainLevelCharacterInfos; //mettre en format json avec les autres infos obtenus
+    }
+
+    async function mainRankedCharacter(player) {
+      var mainRankedCharacter = 0;
+      var idMainRankedCharacter = 0;
+
+      for (var k in player["legends"]) {
+        if (player["legends"][k]["rating"] > mainRankedCharacter) {
+          mainRankedCharacter = player["legends"][k]["rating"];
+          idMainRankedCharacter = k;
+        }
+      }
+
+      const ratingCharacter = player["legends"][idMainRankedCharacter]["rating"];
+
+      var mainRankedCharacterInfos = await getCharacterById(player["legends"][idMainRankedCharacter]["legend_id"]).then(async function (v) {
+        nameCharacter = await v.bio_name;
+        picture = await v.picture;
+        mainRankedCharacterInfosFinal = [nameCharacter, picture]
+        return await mainRankedCharacterInfosFinal;
+      });
+
+      mainRankedCharacterInfos[0] = mainRankedCharacterInfos[0] + " (" + ratingCharacter + ")"
+
+      // const mainRankedCharacterFinal = player["legends"][idMainRankedCharacter]["legend_name_key"].charAt(0).toUpperCase() + player["legends"][idMainRankedCharacter]["legend_name_key"].slice(1);
+
+      return mainRankedCharacterInfos; //mettre en format json avec les autres infos obtenus
+    }
+
+    /* retrieve the main weapon of the client or the opponent */
+    async function mainWeapon(player) {
+      var Hammer = 0;
+      var Sword = 0;
+      var Pistol = 0;
+      var RocketLance = 0;
+      var Spear = 0;
+      var Katar = 0;
+      var Axe = 0;
+      var Bow = 0;
+      var Fists = 0;
+      var Scythe = 0;
+      var Cannon = 0;
+      var Orb = 0;
+      var Greatsword = 0;
+
+      for (var k in player["legends"]) {
+        weapon1 = getWeaponOneAndTwo(
+          player["legends"][k]["legend_name_key"]
+        ).then(async function (v) {
+          weapon1 = await v.weapon_one;
+          return weapon1;
+        });
+        weapon2 = getWeaponOneAndTwo(
+          player["legends"][k]["legend_name_key"]
+        ).then(async function (v) {
+          weapon2 = await v.weapon_two;
+          return weapon2;
+        });
+        // console.log(await weapon1,await weapon2,k,player["legends"][k]["timeheldweaponone"],player["legends"][k]["timeheldweapontwo"]);
+        eval(
+          (await weapon1) + " += " + player["legends"][k]["timeheldweaponone"]
+        );
+        eval(
+          (await weapon2) + " += " + player["legends"][k]["timeheldweapontwo"]
+        );
+      }
+
+      const arrayWeapons = [
+        { weapon: "Hammer", value: Hammer },
+        { weapon: "Sword", value: Sword },
+        { weapon: "Pistol", value: Pistol },
+        { weapon: "RocketLance", value: RocketLance },
+        { weapon: "Spear", value: Spear },
+        { weapon: "Katar", value: Katar },
+        { weapon: "Axe", value: Axe },
+        { weapon: "Bow", value: Bow },
+        { weapon: "Fists", value: Fists },
+        { weapon: "Scythe", value: Scythe },
+        { weapon: "Cannon", value: Cannon },
+        { weapon: "Orb", value: Orb },
+        { weapon: "Greatsword", value: Greatsword },
+      ];
+
+      var x = arrayWeapons.reduce((acc, i) => (i.value > acc.value ? i : acc));
+      const mainWeapon = x.weapon;
+      return await mainWeapon;
+    }
+
+    async function trueLevel(player) {
+      var trueLevelFinal = 0;
+      if (player["level"] == 100) {
+        trueLevelFinal = getTrueLevel(player["xp"]).then(async function (v) {
+          trueLevelFinal = await v.level;
+          return trueLevelFinal;
+        });
+      } else {
+        trueLevelFinal = player["level"];
+      }
+      return await trueLevelFinal;
+    }
+
+    function passiveAggressiveAndTimePlayed(player) {
+      var totalMatchTime = 0;
+      var passiveAgressive = "";
+
+      for (var k in player["legends"]) {
+        totalMatchTime += player["legends"][k]["matchtime"];
+      }
+      const totalGames = player["games"];
+      const averageGameLength = totalMatchTime / totalGames;
+
+      if (averageGameLength < 175) {
+        passiveAgressive = "Agressive";
+      } else if (averageGameLength < 185) {
+        passiveAgressive = "Neutral";
+      } else {
+        passiveAgressive = "Passive";
+      }
+
+      var hours = (totalMatchTime/60)/60;
+      var rhours = Math.floor(hours);
+      var minutes = (hours - rhours) * 60;
+      var rminutes = Math.round(minutes);
+      const totalMatchTimeFinal = rhours + "h " + rminutes + "m";
+
+
+      const passiveAgressivetTimePlayed = [passiveAgressive, totalMatchTimeFinal];
+      return passiveAgressivetTimePlayed;
+    }
+
+
+    const mainLevelCharacterObjectClient = await mainLevelCharacter(statsClientJSON);
+    const mainRankedCharacterClient = await mainRankedCharacter(rankedClientJSON);
+    const mainRankedCharacterPictureClient = await mainRankedCharacter(rankedClientJSON);
+    const passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
+
+
+
+
+    const mainLevelCharacterFinalClient = mainLevelCharacterObjectClient[0];
+
+    // const mainRankedCharacterFinalOpponent = mainRankedCharacterInfos[0];
+    const mainRankedCharacterFinalClient = mainRankedCharacterClient[0];
+
+    // const mainRankedCharacterPictureFinalOpponent = mainRankedCharacterInfos[1];
+    const mainRankedCharacterPictureFinalClient = mainRankedCharacterPictureClient[1];
+
+    const mainWeaponFinalClient = await mainWeapon(statsClientJSON);
+
+    const trueLevelFinalClient = await trueLevel(statsClientJSON);
+
+    const passiveAgressiveFinalClient = passiveAgressiveAndTimePlayedClient[0];
+
+    const timePlayedFinalClient = passiveAgressiveAndTimePlayedClient[1];
+
+
+    miscClientJSON = {
+      mainLevelCharacter: mainLevelCharacterFinalClient,
+      mainRankedCharacter: mainRankedCharacterFinalClient,
+      pictureMainRankedCharacter: mainRankedCharacterPictureFinalClient,
+      mainWeapon: mainWeaponFinalClient,
+      trueLevel: trueLevelFinalClient,
+      passiveAgressive: passiveAgressiveFinalClient,
+      timePlayed: timePlayedFinalClient,
+    };
+
+    console.log(brawlIDClient);
+
+    return res.json({
+      success: true,
+      statsClientJSON,
+      rankedClientJSON,
+      miscClientJSON,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
+
+
+
+
 
 /* corehalla scraping for the ids because for the moment no offsets or other strat */
 /* username = the username of the opponent / elo = the elo of the client / the bralhalla id of the client */
