@@ -329,6 +329,8 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
     const playerNameClient = statsClientJSON["name"]
     const levelClient = rankedClientJSON["level"]
     const peakRatingClient = rankedClientJSON["peak_rating"]
+    const regionClient = rankedClientJSON["region"]
+    const ratingClient = rankedClientJSON["rating"]
 
 
     dataClientJSON = {
@@ -350,7 +352,7 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
 
     return res.json({
       success: true,
-      dataClientJSON
+      dataClientJSON,
       // statsClientJSON,
       // rankedClientJSON,
       // miscClientJSON,
