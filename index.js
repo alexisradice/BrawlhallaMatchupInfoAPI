@@ -327,7 +327,7 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
     const timePlayedFinalClient = passiveAgressiveAndTimePlayedClient[1];
 
     const playerNameClient = statsClientJSON["name"]
-    const levelClient = rankedClientJSON["level"]
+    const levelClient = statsClientJSON["level"]
     const peakRatingClient = rankedClientJSON["peak_rating"]
     const regionClient = rankedClientJSON["region"]
     const ratingClient = rankedClientJSON["rating"]
