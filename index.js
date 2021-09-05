@@ -326,8 +326,17 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
     const passiveAgressiveFinalClient = passiveAgressiveAndTimePlayedClient[0];
     const timePlayedFinalClient = passiveAgressiveAndTimePlayedClient[1];
 
+    const playerNameClient = statsClientJSON["name"]
+    const levelClient = rankedClientJSON["level"]
+    const peakRatingClient = rankedClientJSON["peak_rating"]
 
-    miscClientJSON = {
+
+    dataClientJSON = {
+      playerName: playerNameClient,
+      level: levelClient,
+      region: regionClient,
+      rating: ratingClient,
+      peakRating: peakRatingClient,
       mainLevelCharacter: mainLevelCharacterFinalClient,
       mainRankedCharacter: mainRankedCharacterFinalClient,
       pictureMainRankedCharacter: mainRankedCharacterPictureFinalClient,
@@ -341,9 +350,10 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
 
     return res.json({
       success: true,
-      statsClientJSON,
-      rankedClientJSON,
-      miscClientJSON,
+      dataClientJSON
+      // statsClientJSON,
+      // rankedClientJSON,
+      // miscClientJSON,
     });
   } catch (err) {
     return res.status(500).json({
@@ -599,8 +609,18 @@ app.get("/api/brawl/opponent/:usernameOpponent&:brawlIDClient&:ratingClient&:reg
     const passiveAgressiveFinalOpponent = passiveAgressiveAndTimePlayedOpponent[0];
     const timePlayedFinalOpponent = passiveAgressiveAndTimePlayedOpponent[1];
 
+    const levelOpponent = statsOpponentJSON["level"]
+    const regionOpponent = rankedOpponentJSON["region"]
+    const ratingOpponent = rankedOpponentJSON["rating"]
+    const peakRatingOpponent = rankedOpponentJSON["peak_rating"]
 
-    miscOpponentJSON = {
+
+    dataOpponentJSON = {
+      playerName: usernameOpponent,
+      level: levelOpponent,
+      region: regionOpponent,
+      rating: ratingOpponent,
+      peakRating: peakRatingOpponent,
       mainLevelCharacter: mainLevelCharacterFinalOpponent,
       mainRankedCharacter: mainRankedCharacterFinalOpponent,
       pictureMainRankedCharacter: mainRankedCharacterPictureFinalOpponent,
@@ -614,9 +634,10 @@ app.get("/api/brawl/opponent/:usernameOpponent&:brawlIDClient&:ratingClient&:reg
 
     return res.json({
       success: true,
-      statsOpponentJSON,
-      infosOpponentJSON,
-      miscOpponentJSON,
+      dataOpponentJSON,
+      // statsOpponentJSON,
+      // infosOpponentJSON,
+      // miscOpponentJSON,
 
     });
   } catch (err) {
