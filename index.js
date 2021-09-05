@@ -127,6 +127,55 @@ app.get("/api/brawl/legends/:legend_name", function (req, res) {
 
 
 
+app.get("/api/brawl/test/:brawlIDClient", async (req, res) => {
+  try {
+
+    const brawlIDClient = req.params.brawlIDClient;
+
+    /* brawlhalla API calls for collect the opponent and the client infos */
+
+    async function apiCallRanked(brawlID) {
+      const playerRanked = await fetch(
+        `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+      );
+      var playerRankedJSON = await playerRanked.json();
+
+      return await playerRankedJSON;
+    }
+
+    const rankedClientJSON = await apiCallRanked(brawlIDClient);
+    
+    const ratingClient = rankedClientJSON["rating"]
+
+
+    console.log(ratingClient)
+    if (ratingClient === undefined){
+      var correctIdBool = false
+    }else{
+      var correctIdBool = true
+    }
+
+    result = {
+      correctID: correctIdBool,
+    };
+
+    console.log(brawlIDClient);
+
+    return res.json({
+      success: true,
+      result,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
+
+
+
+
 app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
   try {
 
