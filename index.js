@@ -111,6 +111,26 @@ getTrueLevel().catch(console.dir);
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Main API page and page for display a legend picture with a legend parameter */
 
 //READ Request Handlers
@@ -127,28 +147,47 @@ app.get("/api/brawl/legends/:legend_name", function (req, res) {
 
 
 
-app.get("/api/brawl/test/:brawlIDClient", async (req, res) => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+app.get("/api/brawl/test/:brawlIdClient", async (req, res) => {
   try {
 
-    const brawlIDClient = req.params.brawlIDClient;
+    const brawlIdClient = req.params.brawlIdClient;
 
     /* brawlhalla API calls for collect the opponent and the client infos */
 
     async function apiCallRanked(brawlID) {
       const playerRanked = await fetch(
-        `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+        // `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+        `https://brawlhalla-api.herokuapp.com/v1/ranked/id?brawlhalla_id=${brawlID}`
       );
       var playerRankedJSON = await playerRanked.json();
+      playerRankedJSON = await playerRankedJSON["data"];
 
       return await playerRankedJSON;
     }
 
-    const rankedClientJSON = await apiCallRanked(brawlIDClient);
+    const rankedClientJSON = await apiCallRanked(brawlIdClient);
     
     const ratingClient = rankedClientJSON["rating"]
 
 
-    console.log(ratingClient)
+    // console.log(ratingClient)
     if (ratingClient === undefined){
       var correctIdBool = false
     }else{
@@ -159,7 +198,7 @@ app.get("/api/brawl/test/:brawlIDClient", async (req, res) => {
       correctID: correctIdBool,
     };
 
-    console.log(brawlIDClient);
+    // console.log(brawlIdClient);
 
     return res.json({
       success: true,
@@ -176,18 +215,40 @@ app.get("/api/brawl/test/:brawlIDClient", async (req, res) => {
 
 
 
-app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
   try {
 
-    const brawlIDClient = req.params.brawlIDClient;
+    const brawlIdClient = req.params.brawlIdClient;
 
     /* brawlhalla API calls for collect the opponent and the client infos */
 
     async function apiCallStats(brawlID) {
       const playerStats = await fetch(
-        `https://api.brawlhalla.com/player/${brawlID}/stats?api_key=${process.env.BRAWL_API_KEY}`
+        // `https://api.brawlhalla.com/player/${brawlID}/stats?api_key=${process.env.BRAWL_API_KEY}`
+        `https://brawlhalla-api.herokuapp.com/v1/stats/id?brawlhalla_id=${brawlID}`
       );
       var playerStatsJSON = await playerStats.json();
+      playerStatsJSON = playerStatsJSON["data"];
 
       return await playerStatsJSON;
 
@@ -195,16 +256,66 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
 
     async function apiCallRanked(brawlID) {
       const playerRanked = await fetch(
-        `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+        // `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+        `https://brawlhalla-api.herokuapp.com/v1/ranked/id?brawlhalla_id=${brawlID}`
       );
       var playerRankedJSON = await playerRanked.json();
+      playerRankedJSON = playerRankedJSON["data"];
 
       return await playerRankedJSON;
     }
 
-    const statsClientJSON = await apiCallStats(brawlIDClient);
-    const rankedClientJSON = await apiCallRanked(brawlIDClient);
+    const statsClientJSON = await apiCallStats(brawlIdClient);
+    const rankedClientJSON = await apiCallRanked(brawlIdClient);
+    const usernameClient = await statsClientJSON["name"];
+    const regionClient = rankedClientJSON["region"];
 
+
+
+    const searchPlayerGlobal = await fetch(
+      `https://api.brawlhalla.com/rankings/1v1/all/1?name=${usernameClient}&api_key=${process.env.BRAWL_API_KEY}`
+    );
+    var searchPlayerGlobalJSON = await searchPlayerGlobal.json();
+
+    const searchPlayerRegion = await fetch(
+      `https://api.brawlhalla.com/rankings/1v1/${regionClient.toLowerCase()}/1?name=${usernameClient}&api_key=${process.env.BRAWL_API_KEY}`
+    );
+    var searchPlayerRegionJSON = await searchPlayerRegion.json();
+
+    console.log(searchPlayerRegionJSON, regionClient.toLowerCase())
+
+/* functions to retrieve useful stats */
+    function getInfosPlayerClient(searchPlayerGlobal, searchPlayerRegion) {
+      var result = [];
+
+      for (var k in searchPlayerGlobal) {
+        console.log(usernameClient, searchPlayerGlobal[k]["name"], brawlIdClient, searchPlayerGlobal[k]["brawlhalla_id"]);
+
+        if (usernameClient == searchPlayerGlobal[k]["name"] && brawlIdClient == searchPlayerGlobal[k]["brawlhalla_id"]) {
+          result.push(searchPlayerGlobal[k]);
+        }
+      }
+
+      for (var k in searchPlayerRegion) {
+        if (usernameClient == searchPlayerRegion[k]["name"] && brawlIdClient == searchPlayerRegion[k]["brawlhalla_id"]) {
+          
+          result.push(searchPlayerRegion[k]);
+        }
+      }
+
+      resultFinal = [result[0], result[1]]
+      
+
+      return resultFinal;
+    }
+
+    const infosClientJSON = await getInfosPlayerClient(await searchPlayerGlobalJSON, await searchPlayerRegionJSON);
+    
+    console.log(infosClientJSON)
+
+    const globalRankClient = await infosClientJSON[0]["rank"];
+    const regionRankClient = await infosClientJSON[1]["rank"];
+    console.log(globalRankClient, regionRankClient)
 
 
     /* retrieve the main character of the client or the opponent */
@@ -375,19 +486,21 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
     const passiveAgressiveFinalClient = passiveAgressiveAndTimePlayedClient[0];
     const timePlayedFinalClient = passiveAgressiveAndTimePlayedClient[1];
 
-    const playerNameClient = statsClientJSON["name"]
+    // const playerNameClient = statsClientJSON["name"]
     const levelClient = statsClientJSON["level"]
     const peakRatingClient = rankedClientJSON["peak_rating"]
-    const regionClient = rankedClientJSON["region"]
+    // const regionClient = rankedClientJSON["region"]
     const ratingClient = rankedClientJSON["rating"]
 
 
     dataClientJSON = {
-      playerName: playerNameClient,
+      playerName: usernameClient,
       level: levelClient,
       region: regionClient,
       rating: ratingClient,
       peakRating: peakRatingClient,
+      globalRank: globalRankClient,
+      regionRank: regionRankClient,
       mainLevelCharacter: mainLevelCharacterFinalClient,
       mainRankedCharacter: mainRankedCharacterFinalClient,
       pictureMainRankedCharacter: mainRankedCharacterPictureFinalClient,
@@ -397,7 +510,7 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
       timePlayed: timePlayedFinalClient,
     };
 
-    console.log(brawlIDClient);
+    console.log(brawlIdClient);
 
     return res.json({
       success: true,
@@ -418,13 +531,37 @@ app.get("/api/brawl/client/:brawlIDClient", async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* username = the username of the opponent / elo = the elo of the client / the bralhalla id of the client */
 
-app.get("/api/brawl/opponent/:usernameOpponent&:brawlIDClient&:ratingClient&:regionClient", async (req, res) => {
+app.get("/api/brawl/opponent/:usernameOpponent&:brawlIdClient&:ratingClient&:regionClient", async (req, res) => {
   try {
     const usernameOpponent = req.params.usernameOpponent;
     const ratingClient = req.params.ratingClient;
-    const brawlIDClient = req.params.brawlIDClient;
+    const brawlIdClient = req.params.brawlIdClient;
     const regionClient = req.params.regionClient;
 
 
@@ -432,37 +569,48 @@ app.get("/api/brawl/opponent/:usernameOpponent&:brawlIDClient&:ratingClient&:reg
 
     async function apiCallStats(brawlID) {
       const playerStats = await fetch(
-        `https://api.brawlhalla.com/player/${brawlID}/stats?api_key=${process.env.BRAWL_API_KEY}`
+        // `https://api.brawlhalla.com/player/${brawlID}/stats?api_key=${process.env.BRAWL_API_KEY}`
+        `https://brawlhalla-api.herokuapp.com/v1/stats/id?brawlhalla_id=${brawlID}`
       );
       var playerStatsJSON = await playerStats.json();
+      playerStatsJSON = await playerStatsJSON["data"]
 
       return await playerStatsJSON;
     }
 
     async function apiCallRanked(brawlID) {
       const playerRanked = await fetch(
-        `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+        // `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
+        `https://brawlhalla-api.herokuapp.com/v1/ranked/id?brawlhalla_id=${brawlID}`
       );
       var playerRankedJSON = await playerRanked.json();
+      playerRankedJSON = await playerRankedJSON["data"]
 
       return await playerRankedJSON;
     }
 
-    const searchPlayer = await fetch(
+    const searchPlayerGlobal = await fetch(
       `https://api.brawlhalla.com/rankings/1v1/all/1?name=${usernameOpponent}&api_key=${process.env.BRAWL_API_KEY}`
     );
-    var searchPlayerJSON = await searchPlayer.json();
+    var searchPlayerGlobalJSON = await searchPlayerGlobal.json();
+
+    const searchPlayerRegion = await fetch(
+      `https://api.brawlhalla.com/rankings/1v1/${regionClient.toLowerCase()}/1?name=${usernameOpponent}&api_key=${process.env.BRAWL_API_KEY}`
+    );
+    var searchPlayerRegionJSON = await searchPlayerRegion.json();
+
+    // console.log(searchPlayerRegionJSON, regionClient.toLowerCase())
 
 
 /* functions to retrieve useful stats */
-    function getInfoPlayers(searchPlayerJSON) {
+    function getInfosPlayerGlobalOpponent(searchPlayerGlobalJSON) {
       var result = [];
       var arrayElo = [];
 
-      for (var k in searchPlayerJSON) {
-        if (usernameOpponent == searchPlayerJSON[k]["name"] && regionClient == searchPlayerJSON[k]["region"]) {
+      for (var k in searchPlayerGlobalJSON) {
+        if (usernameOpponent == searchPlayerGlobalJSON[k]["name"] && regionClient == searchPlayerGlobalJSON[k]["region"]) {
 
-          result.push(searchPlayerJSON[k]);
+          result.push(searchPlayerGlobalJSON[k]);
         }
       }
 
@@ -481,11 +629,39 @@ app.get("/api/brawl/opponent/:usernameOpponent&:brawlIDClient&:ratingClient&:reg
       return result[indexPlayer];
     }
 
-    const infosOpponentJSON = await getInfoPlayers(await searchPlayerJSON);
+    const infosOpponentGlobalJSON = await getInfosPlayerGlobalOpponent(await searchPlayerGlobalJSON);
 
-    const brawlIdOpponent = infosOpponentJSON["brawlhalla_id"];
+    const brawlIdOpponent = infosOpponentGlobalJSON["brawlhalla_id"];
     const statsOpponentJSON = await apiCallStats(brawlIdOpponent);
     const rankedOpponentJSON = await apiCallRanked(brawlIdOpponent);
+
+
+
+    /* functions to retrieve useful stats */
+    function getInfosPlayerRegionOpponent(searchPlayerRegion) {
+      var result = [];
+
+      for (var k in searchPlayerRegion) {
+        if (usernameOpponent == searchPlayerRegion[k]["name"] && brawlIdOpponent == searchPlayerRegion[k]["brawlhalla_id"]) {
+
+          result.push(searchPlayerRegion[k]);
+        }
+      }
+
+      return result[0];
+    }
+
+    const infosOpponentRegionJSON = await getInfosPlayerRegionOpponent(await searchPlayerRegionJSON);
+    
+    // console.log(infosOpponentRegionJSON)
+
+    const globalRankOpponent = await infosOpponentGlobalJSON["rank"];
+    const regionRankOpponent = await infosOpponentRegionJSON["rank"];
+    // console.log(globalRankOpponent, regionRankOpponent)
+
+
+
+
 
 
     /* retrieve the main character of the client or the opponent */
@@ -672,6 +848,8 @@ app.get("/api/brawl/opponent/:usernameOpponent&:brawlIDClient&:ratingClient&:reg
       region: regionOpponent,
       rating: ratingOpponent,
       peakRating: peakRatingOpponent,
+      globalRank: globalRankOpponent,
+      regionRank: regionRankOpponent,
       mainLevelCharacter: mainLevelCharacterFinalOpponent,
       mainRankedCharacter: mainRankedCharacterFinalOpponent,
       pictureMainRankedCharacter: mainRankedCharacterPictureFinalOpponent,
@@ -681,7 +859,7 @@ app.get("/api/brawl/opponent/:usernameOpponent&:brawlIDClient&:ratingClient&:reg
       timePlayed: timePlayedFinalOpponent,
     };
 
-    console.log(usernameOpponent, brawlIDClient);
+    console.log(usernameOpponent, brawlIdClient);
 
     return res.json({
       success: true,
