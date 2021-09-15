@@ -15,16 +15,14 @@ const limiter = rateLimit({
 
 //  apply to all requests
 app.use(limiter);
-
 app.use(cors());
 
 
-
-/* Connection to the database and function to find the name of the weapon one and two for a champion */
+/* Connection to the database */
 const uri = process.env.DATABASE_NAME;
 const client = new MongoClient(uri);
 
-/**/
+/*get the name of the two weapons of a character */
 async function getWeaponOneAndTwo(legendName) {
   try {
     await client.connect();
@@ -52,7 +50,7 @@ async function getWeaponOneAndTwo(legendName) {
 }
 getWeaponOneAndTwo().catch(console.dir);
 
-/**/
+/*get the name, id and image of a character */
 async function getCharacterById(legendID) {
   try {
     await client.connect();
@@ -81,7 +79,7 @@ async function getCharacterById(legendID) {
 }
 getCharacterById().catch(console.dir);
 
-/**/
+/*get the true level of a player according to his xp */
 async function getTrueLevel(xpPlayer) {
   try {
     await client.connect();
@@ -111,7 +109,7 @@ getTrueLevel().catch(console.dir);
 
 
 
-/**/
+/* calls the API to retrieve a player's statistics (ranked) */
 async function apiCallRanked(brawlID) {
   const playerRanked = await fetch(
     // `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
@@ -123,7 +121,7 @@ async function apiCallRanked(brawlID) {
   return await playerRankedJSON;
 }
 
-/**/
+/* calls the API to retrieve a player's statistics (stats) */
 async function apiCallStats(brawlID) {
   const playerStats = await fetch(
     // `https://api.brawlhalla.com/player/${brawlID}/stats?api_key=${process.env.BRAWL_API_KEY}`
@@ -136,7 +134,7 @@ async function apiCallStats(brawlID) {
 
 }
 
-/**/
+/* retrieve the global rank of a player */
 async function apiCallSearchPlayerGlobal(usernamePlayer){
   const searchPlayerGlobal = await fetch(
     `https://api.brawlhalla.com/rankings/1v1/all/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
@@ -145,7 +143,7 @@ async function apiCallSearchPlayerGlobal(usernamePlayer){
   return searchPlayerGlobalJSON;
 }
 
-/**/
+/* retrieve the regional rank of a player */
 async function apiCallSearchPlayerRegion(usernamePlayer, regionClient){
   const searchPlayerRegion = await fetch(
     `https://api.brawlhalla.com/rankings/1v1/${regionClient.toLowerCase()}/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
@@ -154,7 +152,7 @@ async function apiCallSearchPlayerRegion(usernamePlayer, regionClient){
   return searchPlayerRegionJSON;
 }
 
-/**/
+/* function to retrieve useful stats */
 function getInfosPlayerClient(usernameClient, brawlIdClient, searchPlayerGlobal, searchPlayerRegion) {
   var result = [];
 
@@ -179,7 +177,7 @@ function getInfosPlayerClient(usernameClient, brawlIdClient, searchPlayerGlobal,
   return resultFinal;
 }
 
-/**/
+/* finds a player's main (lvl) */
 async function mainLevelCharacter(player) {
   var mainLevelCharacter = 0;
   var idMainLevelCharacter = 0;
@@ -206,7 +204,7 @@ async function mainLevelCharacter(player) {
   return await mainLevelCharacterInfos; //mettre en format json avec les autres infos obtenus
 }
 
-/**/
+/* finds a player's main (elo) */
 async function mainRankedCharacter(player) {
   var mainRankedCharacter = 0;
   var idMainRankedCharacter = 0;
@@ -288,7 +286,7 @@ async function mainWeapon(player) {
   return await mainWeapon;
 }
 
-/**/
+/* retrieve the true level of a player */
 async function trueLevel(player) {
   var trueLevelFinal = 0;
   if (player["level"] == 100) {
@@ -302,7 +300,7 @@ async function trueLevel(player) {
   return await trueLevelFinal;
 }
 
-/**/
+/* finds if the player is passive or aggressive with his average game length */
 function passiveAggressiveAndTimePlayed(player) {
   var totalMatchTime = 0;
   var passiveAgressive = "";
@@ -332,7 +330,7 @@ function passiveAggressiveAndTimePlayed(player) {
   return passiveAgressivetTimePlayed;
 }
 
-/* functions to retrieve useful stats */
+/* function to retrieve useful stats */
 function getInfosPlayerGlobalOpponent(usernameOpponent, regionClient, ratingClient, searchPlayerGlobalJSON) {
   var result = [];
   var arrayElo = [];
@@ -359,7 +357,7 @@ function getInfosPlayerGlobalOpponent(usernameOpponent, regionClient, ratingClie
   return result[indexPlayer];
 }
 
-/* functions to retrieve useful stats */
+/* function to retrieve useful stats */
 function getInfosPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, searchPlayerRegion) {
   var result = [];
 
@@ -376,23 +374,28 @@ function getInfosPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, searchP
 
 
 
-
 /* Main API page and page for display a legend picture with a legend parameter */
 
 //READ Request Handlers
+
+/* api homepage */
 app.get("/", (req, res) => {
   res.send("Welcome to the API");
 });
 
-
-
+/* all legends pictures */
 app.get("/api/brawl/legends/:legend_name", function (req, res) {
   const legendName = req.params.legend_name;
-  res.sendFile(__dirname + "/legends/" + legendName + ".png");
+  res.sendFile(__dirname + "/img/legends/" + legendName + ".png");
+});
+
+/* access to the loading image */
+app.get("/api/brawl/imgLoading", function (req, res) {
+  res.sendFile(__dirname + "/img/imgLoading.jpg");
 });
 
 
-
+/* test if a player exists with his brawlhalla id */
 app.get("/api/brawl/test/:brawlIdClient", async (req, res) => {
   try {
 
@@ -432,6 +435,7 @@ app.get("/api/brawl/test/:brawlIdClient", async (req, res) => {
 
 
 
+/* prepare the desired statistics for the client */
 app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
   try {
 
@@ -502,8 +506,7 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
 
 
 
-
-/* username = the username of the opponent / elo = the elo of the client / the brawlhalla id of the client */
+/* prepare the desired statistics for the opponent */
 app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", async (req, res) => {
   try {
     const usernameOpponent = req.params.usernameOpponent;
@@ -574,6 +577,7 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
     });
   }
 });
+
 
 //PORT ENVIRONMENT VARIABLE
 const port = process.env.PORT || 8080;
