@@ -394,6 +394,15 @@ app.get("/api/brawl/imgLoading", function (req, res) {
   res.sendFile(__dirname + "/img/imgLoading.jpg");
 });
 
+/* access to the swf mod */
+app.get("/api/brawl/UI_1.swf", function (req, res) {
+  res.sendFile(__dirname + "/mod/UI_1.swf");
+});
+
+/* access to the BrawlhallaModLoader mod */
+app.get("/api/brawl/BrawlhallaMatchupInfosMod.bmod", function (req, res) {
+  res.sendFile(__dirname + "/mod/BrawlhallaMatchupInfosMod.bmod");
+});
 
 /* test if a player exists with his brawlhalla id */
 app.get("/api/brawl/test/:brawlIdClient", async (req, res) => {
@@ -528,11 +537,13 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
     const regionRankOpponent = await infosOpponentRegionJSON["rank"];
 
     const mainLevelCharacterObjectOpponent = await mainLevelCharacter(statsOpponentJSON);
+    const mainLevelCharacterObjectPictureOpponent = await mainLevelCharacter(statsOpponentJSON);
     const mainRankedCharacterOpponent = await mainRankedCharacter(rankedOpponentJSON);
     const mainRankedCharacterPictureOpponent = await mainRankedCharacter(rankedOpponentJSON);
     const passiveAgressiveAndTimePlayedOpponent = await passiveAggressiveAndTimePlayed(statsOpponentJSON);
 
     const mainLevelCharacterFinalOpponent = mainLevelCharacterObjectOpponent[0];
+    const mainLevelCharacterPictureFinalOpponent = mainLevelCharacterObjectPictureOpponent[1];
     const mainRankedCharacterFinalOpponent = mainRankedCharacterOpponent[0];
     const mainRankedCharacterPictureFinalOpponent = mainRankedCharacterPictureOpponent[1];
     const mainWeaponFinalOpponent = await mainWeapon(statsOpponentJSON);
@@ -556,6 +567,7 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
       regionRank: regionRankOpponent,
       mainLevelCharacter: mainLevelCharacterFinalOpponent,
       mainRankedCharacter: mainRankedCharacterFinalOpponent,
+      pictureMainLevelCharacter: mainLevelCharacterPictureFinalOpponent,
       pictureMainRankedCharacter: mainRankedCharacterPictureFinalOpponent,
       mainWeapon: mainWeaponFinalOpponent,
       trueLevel: trueLevelFinalOpponent,
