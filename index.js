@@ -389,14 +389,24 @@ app.get("/api/brawl/legends/:legend_name", function (req, res) {
   res.sendFile(__dirname + "/img/legends/" + legendName + ".png");
 });
 
-/* screenshot1 */
+/* screenshot 1 */
 app.get("/api/brawl/screenshot1", function (req, res) {
   res.sendFile(__dirname + "/img/screenshots/screenshot1.jpg");
 });
 
-/* screenshot2 */
+/* screenshot 2 */
 app.get("/api/brawl/screenshot2", function (req, res) {
   res.sendFile(__dirname + "/img/screenshots/screenshot2.jpg");
+});
+
+/* screenshot 3 */
+app.get("/api/brawl/screenshot3", function (req, res) {
+  res.sendFile(__dirname + "/img/screenshots/screenshot3.jpg");
+});
+
+/* screenshot 4 */
+app.get("/api/brawl/screenshot4", function (req, res) {
+  res.sendFile(__dirname + "/img/screenshots/screenshot4.jpg");
 });
 
 /* access to the loading image */
