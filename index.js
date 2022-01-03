@@ -70,9 +70,9 @@ async function getCharacterById(legendID) {
         picture: 1,
       },
     };
-    const infos = await allLegends.findOne(query, options);
+    const info = await allLegends.findOne(query, options);
     // since this method returns the matched document, not a cursor, print it directly
-    return await infos;
+    return await info;
   } finally {
     // await client.close();
   }
@@ -153,7 +153,7 @@ async function apiCallSearchPlayerRegion(usernamePlayer, regionClient){
 }
 
 /* function to retrieve useful stats */
-function getInfosPlayerClient(usernameClient, brawlIdClient, searchPlayerGlobal, searchPlayerRegion) {
+function getInfoPlayerClient(usernameClient, brawlIdClient, searchPlayerGlobal, searchPlayerRegion) {
   var result = [];
 
   for (var k in searchPlayerGlobal) {
@@ -191,17 +191,17 @@ async function mainLevelCharacter(player) {
 
   const lvlCharacter = player["legends"][idMainLevelCharacter]["level"];
 
-  var mainLevelCharacterInfos = await getCharacterById(player["legends"][idMainLevelCharacter]["legend_id"]).then(async function (v) {
+  var mainLevelCharacterInfo = await getCharacterById(player["legends"][idMainLevelCharacter]["legend_id"]).then(async function (v) {
     nameCharacter = await v.bio_name;
     picture = await v.picture;
-    mainLevelCharacterInfosFinal = [nameCharacter, picture]
-    return await mainLevelCharacterInfosFinal;
+    mainLevelCharacterInfoFinal = [nameCharacter, picture]
+    return await mainLevelCharacterInfoFinal;
   });
 
-  mainLevelCharacterInfos[0] = mainLevelCharacterInfos[0] + " (Lvl " + lvlCharacter + ")"
+  mainLevelCharacterInfo[0] = mainLevelCharacterInfo[0] + " (Lvl " + lvlCharacter + ")"
 
 
-  return await mainLevelCharacterInfos; //mettre en format json avec les autres infos obtenus
+  return await mainLevelCharacterInfo; //mettre en format json avec les autres info obtenus
 }
 
 /* finds a player's main (elo) */
@@ -218,17 +218,17 @@ async function mainRankedCharacter(player) {
 
   const ratingCharacter = player["legends"][idMainRankedCharacter]["rating"];
 
-  var mainRankedCharacterInfos = await getCharacterById(player["legends"][idMainRankedCharacter]["legend_id"]).then(async function (v) {
+  var mainRankedCharacterInfo = await getCharacterById(player["legends"][idMainRankedCharacter]["legend_id"]).then(async function (v) {
     nameCharacter = await v.bio_name;
     picture = await v.picture;
-    mainRankedCharacterInfosFinal = [nameCharacter, picture]
-    return await mainRankedCharacterInfosFinal;
+    mainRankedCharacterInfoFinal = [nameCharacter, picture]
+    return await mainRankedCharacterInfoFinal;
   });
 
-  mainRankedCharacterInfos[0] = mainRankedCharacterInfos[0] + " (" + ratingCharacter + ")"
+  mainRankedCharacterInfo[0] = mainRankedCharacterInfo[0] + " (" + ratingCharacter + ")"
 
 
-  return mainRankedCharacterInfos; //mettre en format json avec les autres infos obtenus
+  return mainRankedCharacterInfo; //mettre en format json avec les autres info obtenus
 }
 
 /* retrieve the main weapon of the client or the opponent */
@@ -331,7 +331,7 @@ function passiveAggressiveAndTimePlayed(player) {
 }
 
 /* function to retrieve useful stats */
-function getInfosPlayerGlobalOpponent(usernameOpponent, regionClient, ratingClient, searchPlayerGlobalJSON) {
+function getInfoPlayerGlobalOpponent(usernameOpponent, regionClient, ratingClient, searchPlayerGlobalJSON) {
   var result = [];
   var arrayElo = [];
 
@@ -358,7 +358,7 @@ function getInfosPlayerGlobalOpponent(usernameOpponent, regionClient, ratingClie
 }
 
 /* function to retrieve useful stats */
-function getInfosPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, searchPlayerRegion) {
+function getInfoPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, searchPlayerRegion) {
   var result = [];
 
   for (var k in searchPlayerRegion) {
@@ -380,7 +380,7 @@ function getInfosPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, searchP
 
 /* api homepage */
 app.get("/", (req, res) => {
-  res.send("Welcome to the Brawlhalla Matchup Infos API");
+  res.send("Welcome to the Brawlhalla Matchup Info API");
 });
 
 /* all legends pictures */
@@ -420,8 +420,8 @@ app.get("/api/brawl/UI_1.swf", function (req, res) {
 });
 
 /* access to the BrawlhallaModLoader mod */
-app.get("/api/brawl/BrawlhallaMatchupInfosMod.bmod", function (req, res) {
-  res.sendFile(__dirname + "/mod/BrawlhallaMatchupInfosMod.bmod");
+app.get("/api/brawl/BrawlhallaMatchupInfoMod.bmod", function (req, res) {
+  res.sendFile(__dirname + "/mod/BrawlhallaMatchupInfoMod.bmod");
 });
 
 /* test if a player exists with his brawlhalla id */
@@ -479,10 +479,10 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const searchPlayerGlobalJSON = await apiCallSearchPlayerGlobal(usernameClient);
     const searchPlayerRegionJSON = await apiCallSearchPlayerRegion(usernameClient, regionClient);
 
-    const infosClientJSON = await getInfosPlayerClient(usernameClient, brawlIdClient, await searchPlayerGlobalJSON, await searchPlayerRegionJSON);
+    const infoClientJSON = await getInfoPlayerClient(usernameClient, brawlIdClient, await searchPlayerGlobalJSON, await searchPlayerRegionJSON);
     
-    const globalRankClient = await infosClientJSON[0]["rank"];
-    const regionRankClient = await infosClientJSON[1]["rank"];
+    const globalRankClient = await infoClientJSON[0]["rank"];
+    const regionRankClient = await infoClientJSON[1]["rank"];
 
     const mainLevelCharacterObjectClient = await mainLevelCharacter(statsClientJSON);
     const mainRankedCharacterClient = await mainRankedCharacter(rankedClientJSON);
@@ -545,16 +545,16 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
     const searchPlayerGlobalJSON = await apiCallSearchPlayerGlobal(usernameOpponent);
     const searchPlayerRegionJSON = await apiCallSearchPlayerRegion(usernameOpponent, regionClient);
 
-    const infosOpponentGlobalJSON = await getInfosPlayerGlobalOpponent(usernameOpponent, regionClient, ratingClient, await searchPlayerGlobalJSON);
+    const infoOpponentGlobalJSON = await getInfoPlayerGlobalOpponent(usernameOpponent, regionClient, ratingClient, await searchPlayerGlobalJSON);
 
-    const brawlIdOpponent = infosOpponentGlobalJSON["brawlhalla_id"];
+    const brawlIdOpponent = infoOpponentGlobalJSON["brawlhalla_id"];
     const statsOpponentJSON = await apiCallStats(brawlIdOpponent);
     const rankedOpponentJSON = await apiCallRanked(brawlIdOpponent);
 
-    const infosOpponentRegionJSON = await getInfosPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, await searchPlayerRegionJSON);
+    const infoOpponentRegionJSON = await getInfoPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, await searchPlayerRegionJSON);
     
-    const globalRankOpponent = await infosOpponentGlobalJSON["rank"];
-    const regionRankOpponent = await infosOpponentRegionJSON["rank"];
+    const globalRankOpponent = await infoOpponentGlobalJSON["rank"];
+    const regionRankOpponent = await infoOpponentRegionJSON["rank"];
 
     const mainLevelCharacterObjectOpponent = await mainLevelCharacter(statsOpponentJSON);
     const mainLevelCharacterObjectPictureOpponent = await mainLevelCharacter(statsOpponentJSON);
