@@ -380,7 +380,7 @@ function getInfosPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, searchP
 
 /* api homepage */
 app.get("/", (req, res) => {
-  res.send("Welcome to the API");
+  res.send("Welcome to the Brawlhalla Matchup Infos API");
 });
 
 /* all legends pictures */
