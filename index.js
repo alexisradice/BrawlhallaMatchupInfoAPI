@@ -390,14 +390,12 @@ app.get("/api/brawl/legends/:legend_name", function (req, res) {
 });
 
 /* screenshot1 */
-app.get("/api/brawl/legends/:screenshot1", function (req, res) {
-  const legendName = req.params.legend_name;
+app.get("/api/brawl/screenshot1", function (req, res) {
   res.sendFile(__dirname + "/img/screenshots/screenshot1.png");
 });
 
 /* screenshot2 */
-app.get("/api/brawl/legends/:screenshot2", function (req, res) {
-  const legendName = req.params.legend_name;
+app.get("/api/brawl/screenshot2", function (req, res) {
   res.sendFile(__dirname + "/img/screenshots/screenshot2.png");
 });
 
