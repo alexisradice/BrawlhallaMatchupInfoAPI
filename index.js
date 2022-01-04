@@ -201,7 +201,7 @@ async function mainLevelCharacter(player) {
   mainLevelCharacterInfo[0] = mainLevelCharacterInfo[0] + " (Lvl " + lvlCharacter + ")"
 
 
-  return await mainLevelCharacterInfo; //mettre en format json avec les autres info obtenus
+  return await mainLevelCharacterInfo; //put in json format with the other info obtained 
 }
 
 /* finds a player's main (elo) */
@@ -228,7 +228,7 @@ async function mainRankedCharacter(player) {
   mainRankedCharacterInfo[0] = mainRankedCharacterInfo[0] + " (" + ratingCharacter + ")"
 
 
-  return mainRankedCharacterInfo; //mettre en format json avec les autres info obtenus
+  return mainRankedCharacterInfo; //put in json format with the other info obtained 
 }
 
 /* retrieve the main weapon of the client or the opponent */
@@ -389,24 +389,10 @@ app.get("/api/brawl/legends/:legend_name", function (req, res) {
   res.sendFile(__dirname + "/img/legends/" + legendName + ".png");
 });
 
-/* screenshot 1 */
-app.get("/api/brawl/screenshot1", function (req, res) {
-  res.sendFile(__dirname + "/img/screenshots/screenshot1.jpg");
-});
-
-/* screenshot 2 */
-app.get("/api/brawl/screenshot2", function (req, res) {
-  res.sendFile(__dirname + "/img/screenshots/screenshot2.jpg");
-});
-
-/* screenshot 3 */
-app.get("/api/brawl/screenshot3", function (req, res) {
-  res.sendFile(__dirname + "/img/screenshots/screenshot3.jpg");
-});
-
-/* screenshot 4 */
-app.get("/api/brawl/screenshot4", function (req, res) {
-  res.sendFile(__dirname + "/img/screenshots/screenshot4.jpg");
+/* screenshots */
+app.get("/api/brawl/:screenshot_number", function (req, res) {
+  const screenshotNumber = req.params.screenshot_number;
+  res.sendFile(__dirname + "/img/screenshots/" + screenshotNumber +".jpg");
 });
 
 /* access to the loading image */
