@@ -390,23 +390,23 @@ app.get("/api/brawl/legends/:legend_name", function (req, res) {
 });
 
 /* screenshots */
-app.get("/api/brawl/:screenshot_number", function (req, res) {
+app.get("/api/brawl/screenshots/:screenshot_number", function (req, res) {
   const screenshotNumber = req.params.screenshot_number;
-  res.sendFile(__dirname + "/img/screenshots/" + screenshotNumber +".jpg");
+  res.sendFile(__dirname + "/img/screenshots/screenshot" + screenshotNumber +".jpg");
 });
 
 /* access to the loading image */
-app.get("/api/brawl/imgLoading", function (req, res) {
+app.get("/api/brawl/img/imgLoading", function (req, res) {
   res.sendFile(__dirname + "/img/imgLoading.jpg");
 });
 
 /* access to the swf mod */
-app.get("/api/brawl/UI_1.swf", function (req, res) {
+app.get("/api/brawl/mod/UI_1.swf", function (req, res) {
   res.sendFile(__dirname + "/mod/UI_1.swf");
 });
 
 /* access to the BrawlhallaModLoader mod */
-app.get("/api/brawl/BrawlhallaMatchupInfoMod.bmod", function (req, res) {
+app.get("/api/brawl/mod/BrawlhallaMatchupInfoMod.bmod", function (req, res) {
   res.sendFile(__dirname + "/mod/BrawlhallaMatchupInfoMod.bmod");
 });
 
