@@ -565,6 +565,7 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
 
     dataOpponentJSON = {
       playerName: usernameOpponent,
+      brawlID: brawlIdOpponent,
       level: levelOpponent,
       region: regionOpponent,
       rating: ratingOpponent,
