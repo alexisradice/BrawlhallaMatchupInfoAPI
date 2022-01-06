@@ -470,14 +470,14 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const globalRankClient = await infoClientJSON[0]["rank"];
     const regionRankClient = await infoClientJSON[1]["rank"];
 
-    const mainLevelCharacterObjectClient = await mainLevelCharacter(statsClientJSON);
+    const mainLevelCharacterClient = await mainLevelCharacter(statsClientJSON);
     const mainRankedCharacterClient = await mainRankedCharacter(rankedClientJSON);
-    const mainRankedCharacterPictureClient = await mainRankedCharacter(rankedClientJSON);
     const passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
 
-    const mainLevelCharacterFinalClient = mainLevelCharacterObjectClient[0];
+    const mainLevelCharacterFinalClient = mainLevelCharacterClient[0];
+    const mainLevelCharacterPictureFinalClient = mainLevelCharacterClient[0];
     const mainRankedCharacterFinalClient = mainRankedCharacterClient[0];
-    const mainRankedCharacterPictureFinalClient = mainRankedCharacterPictureClient[1];
+    const mainRankedCharacterPictureFinalClient = mainRankedCharacterClient[1];
     const mainWeaponFinalClient = await mainWeapon(statsClientJSON);
     const trueLevelFinalClient = await trueLevel(statsClientJSON);
     const passiveAgressiveFinalClient = passiveAgressiveAndTimePlayedClient[0];
@@ -498,6 +498,7 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
       regionRank: regionRankClient,
       mainLevelCharacter: mainLevelCharacterFinalClient,
       mainRankedCharacter: mainRankedCharacterFinalClient,
+      pictureMainLevelCharacter: mainLevelCharacterPictureFinalClient,
       pictureMainRankedCharacter: mainRankedCharacterPictureFinalClient,
       mainWeapon: mainWeaponFinalClient,
       trueLevel: trueLevelFinalClient,
@@ -542,16 +543,14 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
     const globalRankOpponent = await infoOpponentGlobalJSON["rank"];
     const regionRankOpponent = await infoOpponentRegionJSON["rank"];
 
-    const mainLevelCharacterObjectOpponent = await mainLevelCharacter(statsOpponentJSON);
-    const mainLevelCharacterObjectPictureOpponent = await mainLevelCharacter(statsOpponentJSON);
+    const mainLevelCharacterOpponent = await mainLevelCharacter(statsOpponentJSON);
     const mainRankedCharacterOpponent = await mainRankedCharacter(rankedOpponentJSON);
-    const mainRankedCharacterPictureOpponent = await mainRankedCharacter(rankedOpponentJSON);
     const passiveAgressiveAndTimePlayedOpponent = await passiveAggressiveAndTimePlayed(statsOpponentJSON);
 
-    const mainLevelCharacterFinalOpponent = mainLevelCharacterObjectOpponent[0];
-    const mainLevelCharacterPictureFinalOpponent = mainLevelCharacterObjectPictureOpponent[1];
+    const mainLevelCharacterFinalOpponent = mainLevelCharacterOpponent[0];
+    const mainLevelCharacterPictureFinalOpponent = mainLevelCharacterOpponent[1];
     const mainRankedCharacterFinalOpponent = mainRankedCharacterOpponent[0];
-    const mainRankedCharacterPictureFinalOpponent = mainRankedCharacterPictureOpponent[1];
+    const mainRankedCharacterPictureFinalOpponent = mainRankedCharacterOpponent[1];
     const mainWeaponFinalOpponent = await mainWeapon(statsOpponentJSON);
     const trueLevelFinalOpponent = await trueLevel(statsOpponentJSON);
     const passiveAgressiveFinalOpponent = passiveAgressiveAndTimePlayedOpponent[0];
