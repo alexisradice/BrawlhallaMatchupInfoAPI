@@ -10,7 +10,7 @@ app.use(express.json());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // limit each IP to {max} requests per {windowMs}
+  max: 40, // limit each IP to {max} requests per {windowMs}
 });
 
 //  apply to all requests
