@@ -475,7 +475,7 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
 
     const mainLevelCharacterFinalClient = mainLevelCharacterClient[0];
-    const mainLevelCharacterPictureFinalClient = mainLevelCharacterClient[0];
+    const mainLevelCharacterPictureFinalClient = mainLevelCharacterClient[1];
     const mainRankedCharacterFinalClient = mainRankedCharacterClient[0];
     const mainRankedCharacterPictureFinalClient = mainRankedCharacterClient[1];
     const mainWeaponFinalClient = await mainWeapon(statsClientJSON);
