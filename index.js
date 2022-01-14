@@ -3,6 +3,7 @@ const express = require("express");
 const fetch = require("node-fetch");
 const Joi = require("joi");
 var cors = require("cors");
+const utf8 = require('utf8');
 const rateLimit = require("express-rate-limit");
 const { MongoClient } = require("mongodb");
 const app = express();
@@ -129,6 +130,7 @@ async function apiCallStats(brawlID) {
   );
   var playerStatsJSON = await playerStats.json();
   playerStatsJSON = playerStatsJSON["data"];
+  playerStatsJSON['name'] = utf8.decode(playerStatsJSON['name']);
 
   return await playerStatsJSON;
 
@@ -140,6 +142,8 @@ async function apiCallSearchPlayerGlobal(usernamePlayer){
     `https://api.brawlhalla.com/rankings/1v1/all/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
   );
   var searchPlayerGlobalJSON = await searchPlayerGlobal.json();
+  searchPlayerGlobalJSON[0]['name'] = utf8.decode(searchPlayerGlobalJSON[0]['name']);
+
   return searchPlayerGlobalJSON;
 }
 
@@ -149,6 +153,8 @@ async function apiCallSearchPlayerRegion(usernamePlayer, regionClient){
     `https://api.brawlhalla.com/rankings/1v1/${regionClient.toLowerCase()}/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
   );
   var searchPlayerRegionJSON = await searchPlayerRegion.json();
+  searchPlayerRegionJSON[0]['name'] = utf8.decode(searchPlayerRegionJSON[0]['name']);
+  
   return searchPlayerRegionJSON;
 }
 
@@ -469,7 +475,7 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     
     const globalRankClient = await infoClientJSON[0]["rank"];
     const regionRankClient = await infoClientJSON[1]["rank"];
-
+    
     const mainLevelCharacterClient = await mainLevelCharacter(statsClientJSON);
     const mainRankedCharacterClient = await mainRankedCharacter(rankedClientJSON);
     const passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
