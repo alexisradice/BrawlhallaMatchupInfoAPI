@@ -131,7 +131,7 @@ async function apiCallStats(brawlID) {
   var playerStatsJSON = await playerStats.json();
   playerStatsJSON = playerStatsJSON["data"];
   playerStatsJSON['name'] = utf8.decode(playerStatsJSON['name']);
-  playerStatsJSON['name'] = playerStatsJSON['name'].replace(/#/g, "%23");
+  playerStatsJSON['name'] = playerStatsJSON['name'].replace(/#/g, "%23").replace(/&/g, "%26");
 
   return await playerStatsJSON;
 
@@ -144,7 +144,7 @@ async function apiCallSearchPlayerGlobal(usernamePlayer){
   );
   var searchPlayerGlobalJSON = await searchPlayerGlobal.json();
   searchPlayerGlobalJSON[0]['name'] = utf8.decode(searchPlayerGlobalJSON[0]['name']);
-  searchPlayerGlobalJSON[0]['name'] = searchPlayerGlobalJSON[0]['name'].replace(/#/g, "%23");
+  searchPlayerGlobalJSON[0]['name'] = searchPlayerGlobalJSON[0]['name'].replace(/#/g, "%23").replace(/&/g, "%26");
 
   return searchPlayerGlobalJSON;
 }
@@ -156,7 +156,7 @@ async function apiCallSearchPlayerRegion(usernamePlayer, regionClient){
   );
   var searchPlayerRegionJSON = await searchPlayerRegion.json();
   searchPlayerRegionJSON[0]['name'] = utf8.decode(searchPlayerRegionJSON[0]['name']);
-  searchPlayerRegionJSON[0]['name'] = searchPlayerRegionJSON[0]['name'].replace(/#/g, "%23");
+  searchPlayerRegionJSON[0]['name'] = searchPlayerRegionJSON[0]['name'].replace(/#/g, "%23").replace(/&/g, "%26");
 
   return searchPlayerRegionJSON;
 }
@@ -498,7 +498,7 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const ratingClient = rankedClientJSON["rating"]
 
     dataClientJSON = {
-      playerName: usernameClient.replace(/%23/g, "#"),
+      playerName: usernameClient.replace(/%23/g, "#").replace(/%26/g, "&"),
       level: levelClient,
       region: regionClient,
       rating: ratingClient,
@@ -572,7 +572,7 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
 
 
     dataOpponentJSON = {
-      playerName: usernameOpponent.replace(/%23/g, "#"),
+      playerName: usernameOpponent.replace(/%23/g, "#").replace(/%26/g, "&"),
       brawlID: brawlIdOpponent,
       level: levelOpponent,
       region: regionOpponent,
