@@ -131,6 +131,7 @@ async function apiCallStats(brawlID) {
   var playerStatsJSON = await playerStats.json();
   playerStatsJSON = playerStatsJSON["data"];
   playerStatsJSON['name'] = utf8.decode(playerStatsJSON['name']);
+  playerStatsJSON['name'] = playerStatsJSON['name'].replace(/#/g, "%23");
 
   return await playerStatsJSON;
 
@@ -143,6 +144,7 @@ async function apiCallSearchPlayerGlobal(usernamePlayer){
   );
   var searchPlayerGlobalJSON = await searchPlayerGlobal.json();
   searchPlayerGlobalJSON[0]['name'] = utf8.decode(searchPlayerGlobalJSON[0]['name']);
+  searchPlayerGlobalJSON[0]['name'] = searchPlayerGlobalJSON[0]['name'].replace(/#/g, "%23");
 
   return searchPlayerGlobalJSON;
 }
@@ -154,7 +156,8 @@ async function apiCallSearchPlayerRegion(usernamePlayer, regionClient){
   );
   var searchPlayerRegionJSON = await searchPlayerRegion.json();
   searchPlayerRegionJSON[0]['name'] = utf8.decode(searchPlayerRegionJSON[0]['name']);
-  
+  searchPlayerRegionJSON[0]['name'] = searchPlayerRegionJSON[0]['name'].replace(/#/g, "%23");
+
   return searchPlayerRegionJSON;
 }
 
@@ -466,16 +469,17 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const rankedClientJSON = await apiCallRanked(brawlIdClient);
 
     const usernameClient = await statsClientJSON["name"];
+
     const regionClient = rankedClientJSON["region"];
 
     const searchPlayerGlobalJSON = await apiCallSearchPlayerGlobal(usernameClient);
     const searchPlayerRegionJSON = await apiCallSearchPlayerRegion(usernameClient, regionClient);
 
     const infoClientJSON = await getInfoPlayerClient(usernameClient, brawlIdClient, await searchPlayerGlobalJSON, await searchPlayerRegionJSON);
-    
+
     const globalRankClient = await infoClientJSON[0]["rank"];
     const regionRankClient = await infoClientJSON[1]["rank"];
-    
+
     const mainLevelCharacterClient = await mainLevelCharacter(statsClientJSON);
     const mainRankedCharacterClient = await mainRankedCharacter(rankedClientJSON);
     const passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
@@ -493,9 +497,8 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const peakRatingClient = rankedClientJSON["peak_rating"]
     const ratingClient = rankedClientJSON["rating"]
 
-
     dataClientJSON = {
-      playerName: usernameClient,
+      playerName: usernameClient.replace(/%23/g, "#"),
       level: levelClient,
       region: regionClient,
       rating: ratingClient,
@@ -545,7 +548,7 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
     const rankedOpponentJSON = await apiCallRanked(brawlIdOpponent);
 
     const infoOpponentRegionJSON = await getInfoPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, await searchPlayerRegionJSON);
-    
+
     const globalRankOpponent = await infoOpponentGlobalJSON["rank"];
     const regionRankOpponent = await infoOpponentRegionJSON["rank"];
 
@@ -569,7 +572,7 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
 
 
     dataOpponentJSON = {
-      playerName: usernameOpponent,
+      playerName: usernameOpponent.replace(/%23/g, "#"),
       brawlID: brawlIdOpponent,
       level: levelOpponent,
       region: regionOpponent,
