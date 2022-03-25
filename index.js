@@ -295,6 +295,15 @@ async function mainWeapon(player) {
   return await mainWeapon;
 }
 
+function totalCharactersLevels(player) {
+  var totalLevel = 0;
+
+  for (var k in player["legends"]) {
+    totalLevel += player["legends"][k]["level"];
+  }
+  return totalLevel;
+}
+
 /* retrieve the true level of a player */
 async function trueLevel(player) {
   var trueLevelFinal = 0;
@@ -337,6 +346,20 @@ function passiveAggressiveAndTimePlayed(player) {
 
   const passiveAgressivetTimePlayed = [passiveAgressive, totalMatchTimeFinal];
   return passiveAgressivetTimePlayed;
+}
+
+function getClan(player)
+{
+  var clanClient = "";
+  if (player["clan"] !== undefined)
+  {
+    clanClient = player["clan"]["clan_name"];
+  }
+  else
+  {
+    clanClient = "No Clan";
+  }
+  return clanClient;
 }
 
 /* function to retrieve useful stats */
@@ -469,8 +492,12 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const rankedClientJSON = await apiCallRanked(brawlIdClient);
 
     const usernameClient = await statsClientJSON["name"];
-
     const regionClient = rankedClientJSON["region"];
+
+    const gamesClient =  await rankedClientJSON["games"]
+    const winsClient =  await rankedClientJSON["wins"]
+    const losesClient =  await rankedClientJSON["games"] - await rankedClientJSON["wins"]
+    const winrateClient =  (winsClient / gamesClient * 100).toFixed(2) + "% (" + winsClient + "-" + losesClient + ")";
 
     const searchPlayerGlobalJSON = await apiCallSearchPlayerGlobal(usernameClient);
     const searchPlayerRegionJSON = await apiCallSearchPlayerRegion(usernameClient, regionClient);
@@ -493,9 +520,11 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const passiveAgressiveFinalClient = passiveAgressiveAndTimePlayedClient[0];
     const timePlayedFinalClient = passiveAgressiveAndTimePlayedClient[1];
 
-    const levelClient = statsClientJSON["level"]
-    const peakRatingClient = rankedClientJSON["peak_rating"]
-    const ratingClient = rankedClientJSON["rating"]
+    const levelClient = statsClientJSON["level"];
+    const peakRatingClient = rankedClientJSON["peak_rating"];
+    const ratingClient = rankedClientJSON["rating"];
+    const clanClient = getClan(statsClientJSON);
+    const totalCharactersLevelsClient = totalCharactersLevels(statsClientJSON);
 
     dataClientJSON = {
       playerName: usernameClient.replace(/%23/g, "#").replace(/%26/g, "&"),
@@ -513,6 +542,9 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
       trueLevel: trueLevelFinalClient,
       passiveAgressive: passiveAgressiveFinalClient,
       timePlayed: timePlayedFinalClient,
+      winrate: winrateClient,
+      clan: clanClient,
+      totalCharactersLevels: totalCharactersLevelsClient,
     };
 
     console.log(usernameClient, brawlIdClient);
@@ -547,6 +579,11 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
     const statsOpponentJSON = await apiCallStats(brawlIdOpponent);
     const rankedOpponentJSON = await apiCallRanked(brawlIdOpponent);
 
+    const gamesOpponent =  await rankedOpponentJSON["games"]
+    const winsOpponent =  await rankedOpponentJSON["wins"]
+    const losesOpponent =  await rankedOpponentJSON["games"] - await rankedOpponentJSON["wins"]
+    const winrateOpponent =  (winsOpponent / gamesOpponent * 100).toFixed(2) + "% (" + winsOpponent + "-" + losesOpponent + ")";
+
     const infoOpponentRegionJSON = await getInfoPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, await searchPlayerRegionJSON);
 
     const globalRankOpponent = await infoOpponentGlobalJSON["rank"];
@@ -570,6 +607,9 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
     const ratingOpponent = rankedOpponentJSON["rating"]
     const peakRatingOpponent = rankedOpponentJSON["peak_rating"]
 
+    const clanOpponent = getClan(statsOpponentJSON);
+    const totalCharactersLevelsOpponent = totalCharactersLevels(statsOpponentJSON);
+
 
     dataOpponentJSON = {
       playerName: usernameOpponent.replace(/%23/g, "#").replace(/%26/g, "&"),
@@ -588,6 +628,9 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
       trueLevel: trueLevelFinalOpponent,
       passiveAgressive: passiveAgressiveFinalOpponent,
       timePlayed: timePlayedFinalOpponent,
+      winrate: winrateOpponent,
+      clan: clanOpponent,
+      totalCharactersLevels: totalCharactersLevelsOpponent,
     };
 
     console.log(usernameOpponent, brawlIdOpponent);
