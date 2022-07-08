@@ -18,6 +18,7 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(cors());
 
+const bh_open_api = process.env.BRAWL_OPEN_API;
 
 /* Connection to the database */
 const uri = process.env.DATABASE_NAME;
@@ -114,7 +115,7 @@ getTrueLevel().catch(console.dir);
 async function apiCallRanked(brawlID) {
   const playerRanked = await fetch(
     // `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
-    `${process.env.BRAWL_OPEN_API}/v1/ranked/id?brawlhalla_id=${brawlID}`
+    `${bh_open_api}/v1/ranked/id?brawlhalla_id=${brawlID}`
   );
   var playerRankedJSON = await playerRanked.json();
   playerRankedJSON = await playerRankedJSON["data"];
@@ -126,7 +127,7 @@ async function apiCallRanked(brawlID) {
 async function apiCallStats(brawlID) {
   const playerStats = await fetch(
     // `https://api.brawlhalla.com/player/${brawlID}/stats?api_key=${process.env.BRAWL_API_KEY}`
-    `${process.env.BRAWL_OPEN_API}/v1/stats/id?brawlhalla_id=${brawlID}`
+    `${bh_open_api}/v1/stats/id?brawlhalla_id=${brawlID}`
   );
   var playerStatsJSON = await playerStats.json();
   playerStatsJSON = playerStatsJSON["data"];
