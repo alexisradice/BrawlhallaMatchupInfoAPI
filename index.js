@@ -114,7 +114,7 @@ getTrueLevel().catch(console.dir);
 async function apiCallRanked(brawlID) {
   const playerRanked = await fetch(
     // `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
-    `https://brawlhalla-api.herokuapp.com/v1/ranked/id?brawlhalla_id=${brawlID}`
+    `${process.env.BRAWL_OPEN_API}/v1/ranked/id?brawlhalla_id=${brawlID}`
   );
   var playerRankedJSON = await playerRanked.json();
   playerRankedJSON = await playerRankedJSON["data"];
@@ -126,7 +126,7 @@ async function apiCallRanked(brawlID) {
 async function apiCallStats(brawlID) {
   const playerStats = await fetch(
     // `https://api.brawlhalla.com/player/${brawlID}/stats?api_key=${process.env.BRAWL_API_KEY}`
-    `https://brawlhalla-api.herokuapp.com/v1/stats/id?brawlhalla_id=${brawlID}`
+    `${process.env.BRAWL_OPEN_API}/v1/stats/id?brawlhalla_id=${brawlID}`
   );
   var playerStatsJSON = await playerStats.json();
   playerStatsJSON = playerStatsJSON["data"];
