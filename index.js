@@ -87,6 +87,7 @@ async function getTrueLevel(xpPlayer) {
     await client.connect();
     const database = client.db("brawlData");
     const trueLevels = database.collection("trueLevels");
+
     // Query for a legend that has the name {legendName}
     const query = { xp: { $lt: xpPlayer } };
     const options = {
@@ -100,6 +101,7 @@ async function getTrueLevel(xpPlayer) {
       },
     };
     const trueLevel = await trueLevels.findOne(query, options);
+
     // since this method returns the matched document, not a cursor, print it directly
     // console.log(trueLevel);
     return await trueLevel;
@@ -115,7 +117,7 @@ getTrueLevel().catch(console.dir);
 async function apiCallRanked(brawlID) {
   const playerRanked = await fetch(
     // `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
-    `${bh_open_api}/v1/ranked/id?brawlhalla_id=${brawlID}`
+    `${bh_open_api}/ranked/id?brawlhalla_id=${brawlID}`
   );
   var playerRankedJSON = await playerRanked.json();
   playerRankedJSON = await playerRankedJSON["data"];
@@ -127,7 +129,7 @@ async function apiCallRanked(brawlID) {
 async function apiCallStats(brawlID) {
   const playerStats = await fetch(
     // `https://api.brawlhalla.com/player/${brawlID}/stats?api_key=${process.env.BRAWL_API_KEY}`
-    `${bh_open_api}/v1/stats/id?brawlhalla_id=${brawlID}`
+    `${bh_open_api}/stats/id?brawlhalla_id=${brawlID}`
   );
   var playerStatsJSON = await playerStats.json();
   playerStatsJSON = playerStatsJSON["data"];
@@ -143,7 +145,10 @@ async function apiCallSearchPlayerGlobal(usernamePlayer){
   const searchPlayerGlobal = await fetch(
     `https://api.brawlhalla.com/rankings/1v1/all/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
   );
+
+
   var searchPlayerGlobalJSON = await searchPlayerGlobal.json();
+
   searchPlayerGlobalJSON[0]['name'] = utf8.decode(searchPlayerGlobalJSON[0]['name']);
   searchPlayerGlobalJSON[0]['name'] = searchPlayerGlobalJSON[0]['name'].replace(/#/g, "%23").replace(/&/g, "%26");
 
@@ -256,6 +261,7 @@ async function mainWeapon(player) {
   var Cannon = 0;
   var Orb = 0;
   var Greatsword = 0;
+  var Boots = 0;
   for (var k in player["legends"]) {
     weapon1 = getWeaponOneAndTwo(
       player["legends"][k]["legend_name_key"]
@@ -290,6 +296,7 @@ async function mainWeapon(player) {
     { weapon: "Cannon", value: Cannon },
     { weapon: "Orb", value: Orb },
     { weapon: "Greatsword", value: Greatsword },
+    { weapon: "Boots", value: Boots },
   ];
   var x = arrayWeapons.reduce((acc, i) => (i.value > acc.value ? i : acc));
   const mainWeapon = x.weapon;
@@ -308,6 +315,7 @@ function totalCharactersLevels(player) {
 /* retrieve the true level of a player */
 async function trueLevel(player) {
   var trueLevelFinal = 0;
+
   if (player["level"] == 100) {
     trueLevelFinal = getTrueLevel(player["xp"]).then(async function (v) {
       trueLevelFinal = await v.level;
@@ -499,6 +507,8 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const winsClient =  await rankedClientJSON["wins"]
     const losesClient =  await rankedClientJSON["games"] - await rankedClientJSON["wins"]
     const winrateClient =  (winsClient / gamesClient * 100).toFixed(2) + "% (" + winsClient + "-" + losesClient + ")";
+    
+
 
     const searchPlayerGlobalJSON = await apiCallSearchPlayerGlobal(usernameClient);
     const searchPlayerRegionJSON = await apiCallSearchPlayerRegion(usernameClient, regionClient);
@@ -507,7 +517,7 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
 
     const globalRankClient = await infoClientJSON[0]["rank"];
     const regionRankClient = await infoClientJSON[1]["rank"];
-
+ 
     const mainLevelCharacterClient = await mainLevelCharacter(statsClientJSON);
     const mainRankedCharacterClient = await mainRankedCharacter(rankedClientJSON);
     const passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
@@ -516,8 +526,11 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const mainLevelCharacterPictureFinalClient = mainLevelCharacterClient[1];
     const mainRankedCharacterFinalClient = mainRankedCharacterClient[0];
     const mainRankedCharacterPictureFinalClient = mainRankedCharacterClient[1];
+
     const mainWeaponFinalClient = await mainWeapon(statsClientJSON);
+
     const trueLevelFinalClient = await trueLevel(statsClientJSON);
+
     const passiveAgressiveFinalClient = passiveAgressiveAndTimePlayedClient[0];
     const timePlayedFinalClient = passiveAgressiveAndTimePlayedClient[1];
 
