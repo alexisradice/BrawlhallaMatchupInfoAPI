@@ -133,9 +133,9 @@ async function apiCallStats(brawlID) {
   );
   var playerStatsJSON = await playerStats.json();
   playerStatsJSON = playerStatsJSON["data"];
-  playerStatsJSON['name'] = utf8.decode(playerStatsJSON['name']);
-  playerStatsJSON['name'] = playerStatsJSON['name'].replace(/#/g, "%23").replace(/&/g, "%26");
-
+  //playerStatsJSON['name'] = utf8.decode(playerStatsJSON['name']);
+  if (playerStatsJSON['name'] === "Creamglacer")
+    playerStatsJSON['name'] = "IceCream";
   return await playerStatsJSON;
 
 }
@@ -143,14 +143,12 @@ async function apiCallStats(brawlID) {
 /* retrieve the global rank of a player */
 async function apiCallSearchPlayerGlobal(usernamePlayer){
   const searchPlayerGlobal = await fetch(
-    `https://api.brawlhalla.com/rankings/1v1/all/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
+    `https://api.brawlhalla.com/rankings/1v1/eu/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
   );
-
 
   var searchPlayerGlobalJSON = await searchPlayerGlobal.json();
 
   searchPlayerGlobalJSON[0]['name'] = utf8.decode(searchPlayerGlobalJSON[0]['name']);
-  searchPlayerGlobalJSON[0]['name'] = searchPlayerGlobalJSON[0]['name'].replace(/#/g, "%23").replace(/&/g, "%26");
 
   return searchPlayerGlobalJSON;
 }
@@ -161,9 +159,9 @@ async function apiCallSearchPlayerRegion(usernamePlayer, regionClient){
     `https://api.brawlhalla.com/rankings/1v1/${regionClient.toLowerCase()}/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
   );
   var searchPlayerRegionJSON = await searchPlayerRegion.json();
-  searchPlayerRegionJSON[0]['name'] = utf8.decode(searchPlayerRegionJSON[0]['name']);
-  searchPlayerRegionJSON[0]['name'] = searchPlayerRegionJSON[0]['name'].replace(/#/g, "%23").replace(/&/g, "%26");
 
+  searchPlayerRegionJSON[0]['name'] = utf8.decode(searchPlayerRegionJSON[0]['name']);
+  
   return searchPlayerRegionJSON;
 }
 
