@@ -141,44 +141,73 @@ async function apiCallStats(brawlID) {
 }
 
 /* retrieve the global rank of a player */
-async function apiCallSearchPlayerGlobal(usernamePlayer){
-  const searchPlayerGlobal = await fetch(
-    `https://api.brawlhalla.com/rankings/1v1/eu/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
-  );
+async function apiCallSearchPlayerGlobal(usernamePlayer) {
+  try {
+    const searchPlayerGlobal = await fetch(
+      `https://api.brawlhalla.com/rankings/1v1/eu/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
+    );
 
-  var searchPlayerGlobalJSON = await searchPlayerGlobal.json();
+    if (!searchPlayerGlobal.ok) {
+      throw new Error(`HTTP error! Status: ${searchPlayerGlobal.status}`);
+    }
 
-  searchPlayerGlobalJSON[0]['name'] = utf8.decode(searchPlayerGlobalJSON[0]['name']);
+    const searchPlayerGlobalJSON = await searchPlayerGlobal.json();
 
-  return searchPlayerGlobalJSON;
+    if (!searchPlayerGlobalJSON || searchPlayerGlobalJSON.length === 0) {
+      throw new Error('No data found for the specified player.');
+    }
+
+    searchPlayerGlobalJSON[0]['name'] = utf8.decode(searchPlayerGlobalJSON[0]['name']);
+
+    return searchPlayerGlobalJSON;
+  } catch (error) {
+    console.error('Error fetching player data:', error.message);
+    return null; // ou autre valeur par défaut selon votre logique
+  }
 }
+
 
 /* retrieve the regional rank of a player */
-async function apiCallSearchPlayerRegion(usernamePlayer, regionClient){
-  const searchPlayerRegion = await fetch(
-    `https://api.brawlhalla.com/rankings/1v1/${regionClient.toLowerCase()}/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
-  );
-  var searchPlayerRegionJSON = await searchPlayerRegion.json();
+async function apiCallSearchPlayerRegion(usernamePlayer, regionClient) {
+  try {
+    const searchPlayerRegion = await fetch(
+      `https://api.brawlhalla.com/rankings/1v1/${regionClient.toLowerCase()}/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
+    );
 
-  searchPlayerRegionJSON[0]['name'] = utf8.decode(searchPlayerRegionJSON[0]['name']);
+    if (!searchPlayerRegion.ok) {
+      throw new Error(`HTTP error! Status: ${searchPlayerRegion.status}`);
+    }
+
+    const searchPlayerRegionJSON = await searchPlayerRegion.json();
+
+    if (!searchPlayerRegionJSON || searchPlayerRegionJSON.length === 0) {
+      throw new Error('No data found for the specified player and region.');
+    }
+
+    searchPlayerRegionJSON[0]['name'] = utf8.decode(searchPlayerRegionJSON[0]['name']);
   
-  return searchPlayerRegionJSON;
+    return searchPlayerRegionJSON;
+  } catch (error) {
+    console.error('Error fetching regional player data:', error.message);
+    return null; // ou une autre valeur par défaut selon vos besoins
+  }
 }
+
 
 /* function to retrieve useful stats */
 function getInfoPlayerClient(usernameClient, brawlIdClient, searchPlayerGlobal, searchPlayerRegion) {
   var result = [];
 
   for (var k in searchPlayerGlobal) {
-    // console.log(usernameClient, searchPlayerGlobal[k]["name"], brawlIdClient, searchPlayerGlobal[k]["brawlhalla_id"]);
+    console.log(usernameClient, searchPlayerGlobal[k]["name"], brawlIdClient, searchPlayerGlobal[k]["brawlhalla_id"]);
 
-    if (usernameClient == searchPlayerGlobal[k]["name"] && brawlIdClient == searchPlayerGlobal[k]["brawlhalla_id"]) {
+    if (brawlIdClient == searchPlayerGlobal[k]["brawlhalla_id"]) {
       result.push(searchPlayerGlobal[k]);
     }
   }
 
   for (var k in searchPlayerRegion) {
-    if (usernameClient == searchPlayerRegion[k]["name"] && brawlIdClient == searchPlayerRegion[k]["brawlhalla_id"]) {
+    if (brawlIdClient == searchPlayerRegion[k]["brawlhalla_id"]) {
       
       result.push(searchPlayerRegion[k]);
     }
@@ -499,6 +528,7 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const rankedClientJSON = await apiCallRanked(brawlIdClient);
 
     const usernameClient = await statsClientJSON["name"];
+
     const regionClient = rankedClientJSON["region"];
 
     const gamesClient =  await rankedClientJSON["games"]
@@ -507,15 +537,24 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const winrateClient =  (winsClient / gamesClient * 100).toFixed(2) + "% (" + winsClient + "-" + losesClient + ")";
     
 
+    console.log(usernameClient);
 
     const searchPlayerGlobalJSON = await apiCallSearchPlayerGlobal(usernameClient);
+    console.log(usernameClient);
+
     const searchPlayerRegionJSON = await apiCallSearchPlayerRegion(usernameClient, regionClient);
+    console.log(usernameClient);
 
     const infoClientJSON = await getInfoPlayerClient(usernameClient, brawlIdClient, await searchPlayerGlobalJSON, await searchPlayerRegionJSON);
 
-    const globalRankClient = await infoClientJSON[0]["rank"];
-    const regionRankClient = await infoClientJSON[1]["rank"];
- 
+    console.log(infoClientJSON);
+    const globalRankClient = 0;
+    const regionRankClient = 0;
+    if (searchPlayerGlobalJSON !== null && searchPlayerRegionJSON !== null && await infoClientJSON[0] !== undefined && await infoClientJSON[1] !== undefined) {
+      globalRankClient = await infoClientJSON[0]["rank"];
+      regionRankClient = await infoClientJSON[1]["rank"];
+    }
+
     const mainLevelCharacterClient = await mainLevelCharacter(statsClientJSON);
     const mainRankedCharacterClient = await mainRankedCharacter(rankedClientJSON);
     const passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
