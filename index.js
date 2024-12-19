@@ -534,8 +534,13 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
     const gamesClient =  await rankedClientJSON["games"]
     const winsClient =  await rankedClientJSON["wins"]
     const losesClient =  await rankedClientJSON["games"] - await rankedClientJSON["wins"]
-    const winrateClient =  (winsClient / gamesClient * 100).toFixed(2) + "% (" + winsClient + "-" + losesClient + ")";
-    
+
+    let winrateClient;
+    if (gamesClient === 0) {
+      winrateClient = "0% (0-0)";
+    } else {
+      winrateClient = (winsClient / gamesClient * 100).toFixed(2) + "% (" + winsClient + "-" + losesClient + ")";
+    }
 
     console.log(usernameClient);
 
