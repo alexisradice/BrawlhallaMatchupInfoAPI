@@ -1,15 +1,15 @@
 require("dotenv").config();
-const express = require("express");
-const fetch = require("node-fetch");
-const Joi = require("joi");
+let express = require("express");
+let fetch = require("node-fetch");
+let Joi = require("joi");
 var cors = require("cors");
-const utf8 = require('utf8');
-const rateLimit = require("express-rate-limit");
-const { MongoClient } = require("mongodb");
-const app = express();
+let utf8 = require('utf8');
+let rateLimit = require("express-rate-limit");
+let { MongoClient } = require("mongodb");
+let app = express();
 app.use(express.json());
 
-const limiter = rateLimit({
+let limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 40, // limit each IP to {max} requests per {windowMs}
 });
@@ -18,21 +18,21 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(cors());
 
-const bh_open_api = process.env.BRAWL_OPEN_API;
+let bh_open_api = process.env.BRAWL_OPEN_API;
 
 /* Connection to the database */
-const uri = process.env.DATABASE_NAME;
-const client = new MongoClient(uri);
+let uri = process.env.DATABASE_NAME;
+let client = new MongoClient(uri);
 
 /*get the name of the two weapons of a character */
 async function getWeaponOneAndTwo(legendName) {
   try {
     await client.connect();
-    const database = client.db("brawlData");
-    const allLegends = database.collection("allLegends");
+    let database = client.db("brawlData");
+    let allLegends = database.collection("allLegends");
     // Query for a legend that has the name {legendName}
-    const query = { legend_name_key: legendName };
-    const options = {
+    let query = { legend_name_key: legendName };
+    let options = {
       // sort matched documents in descending order by rating
       sort: { rating: -1 },
 
@@ -43,7 +43,7 @@ async function getWeaponOneAndTwo(legendName) {
         weapon_two: 1,
       },
     };
-    const weapons = await allLegends.findOne(query, options);
+    let weapons = await allLegends.findOne(query, options);
     // since this method returns the matched document, not a cursor, print it directly
     return await weapons;
   } finally {
@@ -56,11 +56,11 @@ getWeaponOneAndTwo().catch(console.dir);
 async function getCharacterById(legendID) {
   try {
     await client.connect();
-    const database = client.db("brawlData");
-    const allLegends = database.collection("allLegends");
+    let database = client.db("brawlData");
+    let allLegends = database.collection("allLegends");
     // Query for a legend that has the name {legendName}
-    const query = { legend_id: legendID };
-    const options = {
+    let query = { legend_id: legendID };
+    let options = {
       // sort matched documents in descending order by rating
       sort: { rating: -1 },
 
@@ -72,7 +72,7 @@ async function getCharacterById(legendID) {
         picture: 1,
       },
     };
-    const info = await allLegends.findOne(query, options);
+    let info = await allLegends.findOne(query, options);
     // since this method returns the matched document, not a cursor, print it directly
     return await info;
   } finally {
@@ -85,12 +85,12 @@ getCharacterById().catch(console.dir);
 async function getTrueLevel(xpPlayer) {
   try {
     await client.connect();
-    const database = client.db("brawlData");
-    const trueLevels = database.collection("trueLevels");
+    let database = client.db("brawlData");
+    let trueLevels = database.collection("trueLevels");
 
     // Query for a legend that has the name {legendName}
-    const query = { xp: { $lt: xpPlayer } };
-    const options = {
+    let query = { xp: { $lt: xpPlayer } };
+    let options = {
       // sort matched documents in descending order by rating
       sort: { level: -1 },
       limit: 1,
@@ -100,7 +100,7 @@ async function getTrueLevel(xpPlayer) {
         level: 1,
       },
     };
-    const trueLevel = await trueLevels.findOne(query, options);
+    let trueLevel = await trueLevels.findOne(query, options);
 
     // since this method returns the matched document, not a cursor, print it directly
     // console.log(trueLevel);
@@ -115,7 +115,7 @@ getTrueLevel().catch(console.dir);
 
 /* calls the API to retrieve a player's statistics (ranked) */
 async function apiCallRanked(brawlID) {
-  const playerRanked = await fetch(
+  let playerRanked = await fetch(
     // `https://api.brawlhalla.com/player/${brawlID}/ranked?api_key=${process.env.BRAWL_API_KEY}`
     `${bh_open_api}/ranked/id?brawlhalla_id=${brawlID}`
   );
@@ -127,7 +127,7 @@ async function apiCallRanked(brawlID) {
 
 /* calls the API to retrieve a player's statistics (stats) */
 async function apiCallStats(brawlID) {
-  const playerStats = await fetch(
+  let playerStats = await fetch(
     // `https://api.brawlhalla.com/player/${brawlID}/stats?api_key=${process.env.BRAWL_API_KEY}`
     `${bh_open_api}/stats/id?brawlhalla_id=${brawlID}`
   );
@@ -143,7 +143,7 @@ async function apiCallStats(brawlID) {
 /* retrieve the global rank of a player */
 async function apiCallSearchPlayerGlobal(usernamePlayer) {
   try {
-    const searchPlayerGlobal = await fetch(
+    let searchPlayerGlobal = await fetch(
       `https://api.brawlhalla.com/rankings/1v1/eu/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
     );
 
@@ -151,7 +151,7 @@ async function apiCallSearchPlayerGlobal(usernamePlayer) {
       throw new Error(`HTTP error! Status: ${searchPlayerGlobal.status}`);
     }
 
-    const searchPlayerGlobalJSON = await searchPlayerGlobal.json();
+    let searchPlayerGlobalJSON = await searchPlayerGlobal.json();
 
     if (!searchPlayerGlobalJSON || searchPlayerGlobalJSON.length === 0) {
       throw new Error('No data found for the specified player.');
@@ -170,7 +170,7 @@ async function apiCallSearchPlayerGlobal(usernamePlayer) {
 /* retrieve the regional rank of a player */
 async function apiCallSearchPlayerRegion(usernamePlayer, regionClient) {
   try {
-    const searchPlayerRegion = await fetch(
+    let searchPlayerRegion = await fetch(
       `https://api.brawlhalla.com/rankings/1v1/${regionClient.toLowerCase()}/1?name=${usernamePlayer}&api_key=${process.env.BRAWL_API_KEY}`
     );
 
@@ -178,7 +178,7 @@ async function apiCallSearchPlayerRegion(usernamePlayer, regionClient) {
       throw new Error(`HTTP error! Status: ${searchPlayerRegion.status}`);
     }
 
-    const searchPlayerRegionJSON = await searchPlayerRegion.json();
+    let searchPlayerRegionJSON = await searchPlayerRegion.json();
 
     if (!searchPlayerRegionJSON || searchPlayerRegionJSON.length === 0) {
       throw new Error('No data found for the specified player and region.');
@@ -231,7 +231,7 @@ async function mainLevelCharacter(player) {
     }
   }
 
-  const lvlCharacter = player["legends"][idMainLevelCharacter]["level"];
+  let lvlCharacter = player["legends"][idMainLevelCharacter]["level"];
 
   var mainLevelCharacterInfo = await getCharacterById(player["legends"][idMainLevelCharacter]["legend_id"]).then(async function (v) {
     nameCharacter = await v.bio_name;
@@ -258,7 +258,7 @@ async function mainRankedCharacter(player) {
     }
   }
 
-  const ratingCharacter = player["legends"][idMainRankedCharacter]["rating"];
+  let ratingCharacter = player["legends"][idMainRankedCharacter]["rating"];
 
   var mainRankedCharacterInfo = await getCharacterById(player["legends"][idMainRankedCharacter]["legend_id"]).then(async function (v) {
     nameCharacter = await v.bio_name;
@@ -309,7 +309,7 @@ async function mainWeapon(player) {
       (await weapon2) + " += " + player["legends"][k]["timeheldweapontwo"]
     );
   }
-  const arrayWeapons = [
+  let arrayWeapons = [
     { weapon: "Hammer", value: Hammer },
     { weapon: "Sword", value: Sword },
     { weapon: "Pistol", value: Pistol },
@@ -326,7 +326,7 @@ async function mainWeapon(player) {
     { weapon: "Boots", value: Boots },
   ];
   var x = arrayWeapons.reduce((acc, i) => (i.value > acc.value ? i : acc));
-  const mainWeapon = x.weapon;
+  let mainWeapon = x.weapon;
   return await mainWeapon;
 }
 
@@ -362,8 +362,8 @@ function passiveAggressiveAndTimePlayed(player) {
   for (var k in player["legends"]) {
     totalMatchTime += player["legends"][k]["matchtime"];
   }
-  const totalGames = player["games"];
-  const averageGameLength = totalMatchTime / totalGames;
+  let totalGames = player["games"];
+  let averageGameLength = totalMatchTime / totalGames;
 
   if (averageGameLength < 175) {
     passiveAgressive = "Agressive";
@@ -377,10 +377,10 @@ function passiveAggressiveAndTimePlayed(player) {
   var rhours = Math.floor(hours);
   var minutes = (hours - rhours) * 60;
   var rminutes = Math.round(minutes);
-  const totalMatchTimeFinal = rhours + "h " + rminutes + "m";
+  let totalMatchTimeFinal = rhours + "h " + rminutes + "m";
 
 
-  const passiveAgressivetTimePlayed = [passiveAgressive, totalMatchTimeFinal];
+  let passiveAgressivetTimePlayed = [passiveAgressive, totalMatchTimeFinal];
   return passiveAgressivetTimePlayed;
 }
 
@@ -414,7 +414,7 @@ function getInfoPlayerGlobalOpponent(usernameOpponent, regionClient, ratingClien
     arrayElo.push(result[k]["rating"]);
   }
 
-  const closest = arrayElo.reduce((a, b) => {
+  let closest = arrayElo.reduce((a, b) => {
     return Math.abs(b - ratingClient) < Math.abs(a - ratingClient) ? b : a;
   });
 
@@ -453,13 +453,13 @@ app.get("/", (req, res) => {
 
 /* all legends pictures */
 app.get("/api/brawl/legends/:legend_name", function (req, res) {
-  const legendName = req.params.legend_name;
+  let legendName = req.params.legend_name;
   res.sendFile(__dirname + "/img/legends/" + legendName + ".png");
 });
 
 /* screenshots */
 app.get("/api/brawl/screenshots/:screenshot_number", function (req, res) {
-  const screenshotNumber = req.params.screenshot_number;
+  let screenshotNumber = req.params.screenshot_number;
   res.sendFile(__dirname + "/img/screenshots/screenshot" + screenshotNumber +".jpg");
 });
 
@@ -482,10 +482,10 @@ app.get("/api/brawl/mod/BrawlhallaMatchupInfoMod.bmod", function (req, res) {
 app.get("/api/brawl/test/:brawlIdClient", async (req, res) => {
   try {
 
-    const brawlIdClient = req.params.brawlIdClient;
+    let brawlIdClient = req.params.brawlIdClient;
 
 
-    const rankedClientJSON = await apiCallRanked(brawlIdClient);
+    let rankedClientJSON = await apiCallRanked(brawlIdClient);
     var ratingClient = 0;
     try {
       ratingClient = rankedClientJSON["rating"]
@@ -522,18 +522,18 @@ app.get("/api/brawl/test/:brawlIdClient", async (req, res) => {
 app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
   try {
 
-    const brawlIdClient = req.params.brawlIdClient;
+    let brawlIdClient = req.params.brawlIdClient;
 
-    const statsClientJSON = await apiCallStats(brawlIdClient);
-    const rankedClientJSON = await apiCallRanked(brawlIdClient);
+    let statsClientJSON = await apiCallStats(brawlIdClient);
+    let rankedClientJSON = await apiCallRanked(brawlIdClient);
 
-    const usernameClient = await statsClientJSON["name"];
+    let usernameClient = await statsClientJSON["name"];
 
-    const regionClient = rankedClientJSON["region"];
+    let regionClient = rankedClientJSON["region"];
 
-    const gamesClient =  await rankedClientJSON["games"]
-    const winsClient =  await rankedClientJSON["wins"]
-    const losesClient =  await rankedClientJSON["games"] - await rankedClientJSON["wins"]
+    let gamesClient =  await rankedClientJSON["games"]
+    let winsClient =  await rankedClientJSON["wins"]
+    let losesClient =  await rankedClientJSON["games"] - await rankedClientJSON["wins"]
 
     let winrateClient;
     if (gamesClient === 0) {
@@ -544,43 +544,43 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
 
     console.log(usernameClient);
 
-    const searchPlayerGlobalJSON = await apiCallSearchPlayerGlobal(usernameClient);
+    let searchPlayerGlobalJSON = await apiCallSearchPlayerGlobal(usernameClient);
     console.log(usernameClient);
 
-    const searchPlayerRegionJSON = await apiCallSearchPlayerRegion(usernameClient, regionClient);
+    let searchPlayerRegionJSON = await apiCallSearchPlayerRegion(usernameClient, regionClient);
     console.log(usernameClient);
 
-    const infoClientJSON = await getInfoPlayerClient(usernameClient, brawlIdClient, await searchPlayerGlobalJSON, await searchPlayerRegionJSON);
+    let infoClientJSON = await getInfoPlayerClient(usernameClient, brawlIdClient, await searchPlayerGlobalJSON, await searchPlayerRegionJSON);
 
     console.log(infoClientJSON);
-    const globalRankClient = 0;
-    const regionRankClient = 0;
+    let globalRankClient = 0;
+    let regionRankClient = 0;
     if (searchPlayerGlobalJSON !== null && searchPlayerRegionJSON !== null && await infoClientJSON[0] !== undefined && await infoClientJSON[1] !== undefined) {
       globalRankClient = await infoClientJSON[0]["rank"];
       regionRankClient = await infoClientJSON[1]["rank"];
     }
 
-    const mainLevelCharacterClient = await mainLevelCharacter(statsClientJSON);
-    const mainRankedCharacterClient = await mainRankedCharacter(rankedClientJSON);
-    const passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
+    let mainLevelCharacterClient = await mainLevelCharacter(statsClientJSON);
+    let mainRankedCharacterClient = await mainRankedCharacter(rankedClientJSON);
+    let passiveAgressiveAndTimePlayedClient = await passiveAggressiveAndTimePlayed(statsClientJSON);
 
-    const mainLevelCharacterFinalClient = mainLevelCharacterClient[0];
-    const mainLevelCharacterPictureFinalClient = mainLevelCharacterClient[1];
-    const mainRankedCharacterFinalClient = mainRankedCharacterClient[0];
-    const mainRankedCharacterPictureFinalClient = mainRankedCharacterClient[1];
+    let mainLevelCharacterFinalClient = mainLevelCharacterClient[0];
+    let mainLevelCharacterPictureFinalClient = mainLevelCharacterClient[1];
+    let mainRankedCharacterFinalClient = mainRankedCharacterClient[0];
+    let mainRankedCharacterPictureFinalClient = mainRankedCharacterClient[1];
 
-    const mainWeaponFinalClient = await mainWeapon(statsClientJSON);
+    let mainWeaponFinalClient = await mainWeapon(statsClientJSON);
 
-    const trueLevelFinalClient = await trueLevel(statsClientJSON);
+    let trueLevelFinalClient = await trueLevel(statsClientJSON);
 
-    const passiveAgressiveFinalClient = passiveAgressiveAndTimePlayedClient[0];
-    const timePlayedFinalClient = passiveAgressiveAndTimePlayedClient[1];
+    let passiveAgressiveFinalClient = passiveAgressiveAndTimePlayedClient[0];
+    let timePlayedFinalClient = passiveAgressiveAndTimePlayedClient[1];
 
-    const levelClient = statsClientJSON["level"];
-    const peakRatingClient = rankedClientJSON["peak_rating"];
-    const ratingClient = rankedClientJSON["rating"];
-    const clanClient = getClan(statsClientJSON);
-    const totalCharactersLevelsClient = totalCharactersLevels(statsClientJSON);
+    let levelClient = statsClientJSON["level"];
+    let peakRatingClient = rankedClientJSON["peak_rating"];
+    let ratingClient = rankedClientJSON["rating"];
+    let clanClient = getClan(statsClientJSON);
+    let totalCharactersLevelsClient = totalCharactersLevels(statsClientJSON);
 
     dataClientJSON = {
       playerName: usernameClient.replace(/%23/g, "#").replace(/%26/g, "&"),
@@ -622,49 +622,49 @@ app.get("/api/brawl/client/:brawlIdClient", async (req, res) => {
 /* prepare the desired statistics for the opponent */
 app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", async (req, res) => {
   try {
-    const usernameOpponent = req.params.usernameOpponent;
-    const ratingClient = req.params.ratingClient;
-    const regionClient = req.params.regionClient;
+    let usernameOpponent = req.params.usernameOpponent;
+    let ratingClient = req.params.ratingClient;
+    let regionClient = req.params.regionClient;
 
-    const searchPlayerGlobalJSON = await apiCallSearchPlayerGlobal(usernameOpponent);
-    const searchPlayerRegionJSON = await apiCallSearchPlayerRegion(usernameOpponent, regionClient);
+    let searchPlayerGlobalJSON = await apiCallSearchPlayerGlobal(usernameOpponent);
+    let searchPlayerRegionJSON = await apiCallSearchPlayerRegion(usernameOpponent, regionClient);
 
-    const infoOpponentGlobalJSON = await getInfoPlayerGlobalOpponent(usernameOpponent, regionClient, ratingClient, await searchPlayerGlobalJSON);
+    let infoOpponentGlobalJSON = await getInfoPlayerGlobalOpponent(usernameOpponent, regionClient, ratingClient, await searchPlayerGlobalJSON);
 
-    const brawlIdOpponent = infoOpponentGlobalJSON["brawlhalla_id"];
-    const statsOpponentJSON = await apiCallStats(brawlIdOpponent);
-    const rankedOpponentJSON = await apiCallRanked(brawlIdOpponent);
+    let brawlIdOpponent = infoOpponentGlobalJSON["brawlhalla_id"];
+    let statsOpponentJSON = await apiCallStats(brawlIdOpponent);
+    let rankedOpponentJSON = await apiCallRanked(brawlIdOpponent);
 
-    const gamesOpponent =  await rankedOpponentJSON["games"]
-    const winsOpponent =  await rankedOpponentJSON["wins"]
-    const losesOpponent =  await rankedOpponentJSON["games"] - await rankedOpponentJSON["wins"]
-    const winrateOpponent =  (winsOpponent / gamesOpponent * 100).toFixed(2) + "% (" + winsOpponent + "-" + losesOpponent + ")";
+    let gamesOpponent =  await rankedOpponentJSON["games"]
+    let winsOpponent =  await rankedOpponentJSON["wins"]
+    let losesOpponent =  await rankedOpponentJSON["games"] - await rankedOpponentJSON["wins"]
+    let winrateOpponent =  (winsOpponent / gamesOpponent * 100).toFixed(2) + "% (" + winsOpponent + "-" + losesOpponent + ")";
 
-    const infoOpponentRegionJSON = await getInfoPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, await searchPlayerRegionJSON);
+    let infoOpponentRegionJSON = await getInfoPlayerRegionOpponent(usernameOpponent, brawlIdOpponent, await searchPlayerRegionJSON);
 
-    const globalRankOpponent = await infoOpponentGlobalJSON["rank"];
-    const regionRankOpponent = await infoOpponentRegionJSON["rank"];
+    let globalRankOpponent = await infoOpponentGlobalJSON["rank"];
+    let regionRankOpponent = await infoOpponentRegionJSON["rank"];
 
-    const mainLevelCharacterOpponent = await mainLevelCharacter(statsOpponentJSON);
-    const mainRankedCharacterOpponent = await mainRankedCharacter(rankedOpponentJSON);
-    const passiveAgressiveAndTimePlayedOpponent = await passiveAggressiveAndTimePlayed(statsOpponentJSON);
+    let mainLevelCharacterOpponent = await mainLevelCharacter(statsOpponentJSON);
+    let mainRankedCharacterOpponent = await mainRankedCharacter(rankedOpponentJSON);
+    let passiveAgressiveAndTimePlayedOpponent = await passiveAggressiveAndTimePlayed(statsOpponentJSON);
 
-    const mainLevelCharacterFinalOpponent = mainLevelCharacterOpponent[0];
-    const mainLevelCharacterPictureFinalOpponent = mainLevelCharacterOpponent[1];
-    const mainRankedCharacterFinalOpponent = mainRankedCharacterOpponent[0];
-    const mainRankedCharacterPictureFinalOpponent = mainRankedCharacterOpponent[1];
-    const mainWeaponFinalOpponent = await mainWeapon(statsOpponentJSON);
-    const trueLevelFinalOpponent = await trueLevel(statsOpponentJSON);
-    const passiveAgressiveFinalOpponent = passiveAgressiveAndTimePlayedOpponent[0];
-    const timePlayedFinalOpponent = passiveAgressiveAndTimePlayedOpponent[1];
+    let mainLevelCharacterFinalOpponent = mainLevelCharacterOpponent[0];
+    let mainLevelCharacterPictureFinalOpponent = mainLevelCharacterOpponent[1];
+    let mainRankedCharacterFinalOpponent = mainRankedCharacterOpponent[0];
+    let mainRankedCharacterPictureFinalOpponent = mainRankedCharacterOpponent[1];
+    let mainWeaponFinalOpponent = await mainWeapon(statsOpponentJSON);
+    let trueLevelFinalOpponent = await trueLevel(statsOpponentJSON);
+    let passiveAgressiveFinalOpponent = passiveAgressiveAndTimePlayedOpponent[0];
+    let timePlayedFinalOpponent = passiveAgressiveAndTimePlayedOpponent[1];
 
-    const levelOpponent = statsOpponentJSON["level"]
-    const regionOpponent = rankedOpponentJSON["region"]
-    const ratingOpponent = rankedOpponentJSON["rating"]
-    const peakRatingOpponent = rankedOpponentJSON["peak_rating"]
+    let levelOpponent = statsOpponentJSON["level"]
+    let regionOpponent = rankedOpponentJSON["region"]
+    let ratingOpponent = rankedOpponentJSON["rating"]
+    let peakRatingOpponent = rankedOpponentJSON["peak_rating"]
 
-    const clanOpponent = getClan(statsOpponentJSON);
-    const totalCharactersLevelsOpponent = totalCharactersLevels(statsOpponentJSON);
+    let clanOpponent = getClan(statsOpponentJSON);
+    let totalCharactersLevelsOpponent = totalCharactersLevels(statsOpponentJSON);
 
 
     dataOpponentJSON = {
@@ -706,5 +706,5 @@ app.get("/api/brawl/opponent/:usernameOpponent&:ratingClient&:regionClient", asy
 
 
 //PORT ENVIRONMENT VARIABLE
-const port = process.env.PORT || 8080;
+let port = process.env.PORT || 8080;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
